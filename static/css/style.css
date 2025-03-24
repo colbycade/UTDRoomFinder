@@ -1,0 +1,147 @@
+/* Reset default margins and padding */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Body styling with UTD Orange background */
+body {
+    background-color: #ff6200; /* UTD Orange */
+    font-family: Arial, sans-serif;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* Navigation styling */
+nav {
+    background-color: white; /* White for contrast */
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+nav h1 {
+    color: #008000; /* UTD Green */
+    display: inline;
+    margin-right: 20px;
+}
+
+nav a {
+    color: #008000; /* UTD Green */
+    text-decoration: none;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+nav a:hover {
+    color: #ff6200; /* UTD Orange */
+    text-decoration: underline;
+}
+
+/* Main content area */
+main {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Headings */
+h2 {
+    color: #008000; /* UTD Green */
+    margin-bottom: 1rem;
+}
+
+/* Form styling */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 300px;
+}
+
+label {
+    color: #333;
+    font-weight: bold;
+}
+
+select, input[type="date"], input[type="time"] {
+    width: 100%;
+    padding: 8px;
+    border: 2px solid #008000; /* UTD Green */
+    border-radius: 5px;
+    background-color: #fff;
+    font-size: 1rem;
+    color: #333;
+}
+
+select:focus, input:focus {
+    outline: none;
+    border-color: #ff6200; /* UTD Orange */
+    box-shadow: 0 0 5px rgba(255, 98, 0, 0.5);
+}
+
+/* Button styling */
+button {
+    padding: 10px;
+    background-color: #008000; /* UTD Green */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #ff6200; /* UTD Orange */
+}
+
+/* Results and schedule sections */
+#results, #schedule {
+    margin-top: 20px;
+}
+
+#results ul {
+    list-style: none;
+    padding: 0;
+}
+
+#results li {
+    padding: 10px;
+    border: 1px solid #ddd;
+    margin-bottom: 5px;
+    background-color: #f9f9f9;
+}
+
+#results li:hover {
+    background-color: #ffe6cc; /* Light orange hover effect */
+}
+
+#results li button {
+    margin-left: 10px;
+    padding: 5px 10px;
+    font-size: 0.9rem;
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+    main {
+        padding: 1rem;
+    }
+
+    h2 {
+        font-size: 1.2rem;
+    }
+
+    form {
+        max-width: 100%;
+    }
+
+    #results li {
+        font-size: 0.9rem;
+    }
+}

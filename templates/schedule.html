@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+    <h2>Schedule for {{ room }}</h2>
+    <label for="schedule-date">Select Date:</label>
+    <input type="date" id="schedule-date" value="{{ today }}">
+    <div id="schedule"></div>
+    <button id="report-error">Report Error</button>
+    <a href="{{ url_for('search') }}">Back to Search</a>
+{% endblock %}
