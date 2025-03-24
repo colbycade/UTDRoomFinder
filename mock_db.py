@@ -141,3 +141,33 @@ def get_rooms_by_building():
             building_to_rooms[building] = []
         building_to_rooms[building].append(room['room'])
     return building_to_rooms
+
+def add_event(building, floor, room, date, start_time, end_time, event_title):
+    """Add a user-created event to the room's schedule for the specified date."""
+    room_data = get_room(building, floor, room)
+    if not room_data:
+        return False
+    if date not in room_data['schedule']:
+        room_data['schedule'][date] = []
+    room_data['schedule'][date].append({
+        "start_time": start_time,
+        "end_time": end_time,
+        "status": "Occupied",
+        "event_title": event_title,
+        "is_user_created": True
+    })
+    # Sort the schedule by start time
+    room_data['schedule'][date].sort(key=lambda x: x['start_time'])
+    return True
+
+def remove_user_event(building, floor, room, date, time_block):
+    """Remove a user-created event from the room's schedule for the specified date and time block."""
+    room_data = get_room(building, floor, room)
+    if not room_data or date not in room_data['schedule']:
+        return False
+    schedule = room_data['schedule'][date]
+    room_data['schedule'][date] = [
+        slot for slot in schedule
+        if not (slot['start_time'] + ' - ' + slot['end_time'] == time_block and slot.get('is_user_created', False))
+    ]
+    return True

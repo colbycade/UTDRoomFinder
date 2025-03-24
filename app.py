@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify
-from mock_db import get_all_rooms, get_room, get_buildings, get_rooms_by_building
+from mock_db import get_all_rooms, get_room, get_buildings, get_rooms_by_building, add_event, remove_user_event
 from datetime import datetime
 
 app = Flask(__name__)
@@ -177,7 +177,7 @@ def schedule(building, floor, room):
     today = datetime.now().strftime('%Y-%m-%d')
     return render_template('schedule.html', building=building, floor=floor, room=room, today=today)
 
-# Report error (API call placeholder with mock response)
+# Report error (API call)
 @app.route('/api/report', methods=['POST'])
 def report_error():
     room = request.form.get('room')
@@ -187,18 +187,34 @@ def report_error():
     report_type = request.form.get('report_type')
     event_title = request.form.get('event_title', '')
     explanation = request.form.get('explanation', '')
-    
-    # Mock response based on report type
-    if report_type == "cancelled":
-        return jsonify({"status": "Event marked as cancelled", "building": building, "floor": floor, "room": room, "time_block": time_block, "explanation": explanation})
-    elif report_type == "add":
+    date = request.form.get('date', datetime.now().strftime('%Y-%m-%d'))  # Use current date if not provided
+
+    if report_type == "add":
+        # Parse the time block (e.g., "07:30 - 08:30")
+        try:
+            start_time, end_time = time_block.split(' - ')
+        except ValueError:
+            return jsonify({"error": "Invalid time block format"}), 400
+        # Add the event using the abstracted function
+        success = add_event(building, floor, room, date, start_time, end_time, event_title)
+        if not success:
+            return jsonify({"error": "Room not found"}), 404
         return jsonify({"status": "Event added", "building": building, "floor": floor, "room": room, "time_block": time_block, "event_title": event_title})
+
+    elif report_type == "remove":
+        # Remove the user-created event using the abstracted function
+        success = remove_user_event(building, floor, room, date, time_block)
+        if not success:
+            return jsonify({"error": "Room or event not found"}), 404
+        return jsonify({"status": "Event removed", "building": building, "floor": floor, "room": room, "time_block": time_block})
+
+    elif report_type == "cancelled":
+        return jsonify({"status": "Event marked as cancelled", "building": building, "floor": floor, "room": room, "time_block": time_block, "explanation": explanation})
     elif report_type == "verify":
         return jsonify({"status": "Event accuracy reported", "building": building, "floor": floor, "room": room, "time_block": time_block})
-    elif report_type == "remove":
-        return jsonify({"status": "Event removed", "building": building, "floor": floor, "room": room, "time_block": time_block})
     elif report_type == "confirm":
         return jsonify({"status": "Event confirmed", "building": building, "floor": floor, "room": room, "time_block": time_block})
+
     return jsonify({"status": "Report submitted", "building": building, "floor": floor, "room": room, "time_block": time_block})
 
 if __name__ == '__main__':

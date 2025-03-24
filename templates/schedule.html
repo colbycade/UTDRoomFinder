@@ -11,6 +11,10 @@
             <a href="#" id="view-on-map">View on Map</a>
         </div>
     </div>
+    <!-- Add the new button here -->
+    <div class="schedule-actions">
+        <button id="report-missing-event">Report Missing Event</button>
+    </div>
     <table class="schedule-table">
         <thead>
             <tr>
@@ -29,6 +33,8 @@
             <p id="dialog-message"></p>
             <form id="dialog-form">
                 <label id="event-title-label" style="display: none;">Event Title: <input type="text" id="event-title" name="event_title"></label>
+                <label id="start-time-label" style="display: none;">Start Time: <input type="time" id="start-time" name="start_time"></label>
+                <label id="end-time-label" style="display: none;">End Time: <input type="time" id="end-time" name="end_time"></label>
                 <label id="explanation-label" style="display: none;">Explanation of cancellation: <textarea id="explanation" name="explanation"></textarea></label>
                 <div class="dialog-buttons">
                     <button type="button" id="dialog-confirm"></button>
