@@ -88,6 +88,3 @@ def report_error():
         return jsonify({"status": "Event marked as cancelled", "building": building, "floor": floor, "room": room, "time_block": time_block, "explanation": explanation})
 
     return jsonify({"status": "Report submitted", "building": building, "floor": floor, "room": room, "time_block": time_block})
-
-if __name__ == '__main__':
-    app.run(debug=True)
