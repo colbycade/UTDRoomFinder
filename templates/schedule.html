@@ -1,9 +1,40 @@
 {% extends "base.html" %}
 {% block content %}
-    <h2>Schedule for {{ room }}</h2>
-    <label for="schedule-date">Select Date:</label>
-    <input type="date" id="schedule-date" value="{{ today }}">
-    <div id="schedule"></div>
-    <button id="report-error">Report Error</button>
-    <a href="{{ url_for('search') }}">Back to Search</a>
+    <h2>Room Schedule - {{ building }} {{ floor }}.{{ room }}</h2>
+    <div class="schedule-header">
+        <div>
+            <label for="schedule-date">Date:</label>
+            <input type="date" id="schedule-date" value="{{ today }}">
+        </div>
+        <div class="schedule-links">
+            <a href="{{ url_for('search') }}">Back to Search Results</a>
+            <a href="#" id="view-on-map">View on Map</a>
+        </div>
+    </div>
+    <table class="schedule-table">
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Status</th>
+                <th>Notes</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody id="schedule">
+        </tbody>
+    </table>
+    <div id="report-dialog" class="dialog" style="display: none;">
+        <div class="dialog-content">
+            <h3 id="dialog-title"></h3>
+            <p id="dialog-message"></p>
+            <form id="dialog-form">
+                <label id="event-title-label" style="display: none;">Event Title: <input type="text" id="event-title" name="event_title"></label>
+                <label id="explanation-label" style="display: none;">Explanation of cancellation: <textarea id="explanation" name="explanation"></textarea></label>
+                <div class="dialog-buttons">
+                    <button type="button" id="dialog-confirm"></button>
+                    <button type="button" id="dialog-cancel">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
 {% endblock %}
