@@ -1,33 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const searchForm = document.getElementById('search-form');
-    let lastSearchCriteria = {};
-
-    if (searchForm) {
-        searchForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(searchForm);
-            lastSearchCriteria = {
-                building: formData.get('building'),
-                room: formData.get('room'),
-                date: formData.get('date'),
-                start_time: formData.get('start_time'),
-                end_time: formData.get('end_time')
-            };
-            const response = await fetch('/api/search', {
-                method: 'POST',
-                body: formData
-            });
-            const data = await response.json();
-            displayResults(data.rooms);
-        });
-
-        const resetButton = document.getElementById('reset-button');
-        resetButton.addEventListener('click', () => {
-            searchForm.reset();
-            document.getElementById('results').innerHTML = '';
-        });
-    }
-
     const scheduleDate = document.getElementById('schedule-date');
     if (scheduleDate) {
         scheduleDate.addEventListener('change', loadSchedule);
@@ -42,36 +13,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
-
-function displayResults(rooms) {
-    const resultsDiv = document.getElementById('results');
-    resultsDiv.innerHTML = document.querySelector('script[type="text/template"]').textContent;
-
-    // Populate search criteria
-    document.getElementById('criteria-building').textContent = lastSearchCriteria.building || 'Any Building';
-    document.getElementById('criteria-room').textContent = lastSearchCriteria.room || 'Any Room Number';
-    document.getElementById('criteria-date').textContent = lastSearchCriteria.date || 'Any Date';
-    document.getElementById('criteria-start-time').textContent = lastSearchCriteria.start_time || 'Any Start Time';
-    document.getElementById('criteria-end-time').textContent = lastSearchCriteria.end_time || 'Any End Time';
-
-    // Populate results table
-    const resultsList = document.getElementById('results-list');
-    resultsList.innerHTML = '';
-    if (rooms.length === 0) {
-        resultsList.innerHTML = '<tr><td colspan="4">No rooms available.</td></tr>';
-    } else {
-        rooms.forEach(room => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${room.building} ${room.floor}.${room.room}</td>
-                <td>${room.available_start}</td>
-                <td>${room.available_until}</td>
-                <td><button onclick="window.location.href='/schedule/${room.building}/${room.floor}/${room.room}'">View Schedule</button></td>
-            `;
-            resultsList.appendChild(tr);
-        });
-    }
-}
 
 async function loadSchedule() {
     const path = window.location.pathname.split('/');

@@ -1,24 +1,18 @@
 {% extends "base.html" %}
 {% block content %}
     <h2>Find an Open Room</h2>
-    <form id="search-form">
+    <form id="search-form" action="{{ url_for('search_results') }}" method="POST">
         <label for="building">Building:</label>
         <select id="building" name="building">
             <option value="Any Building">Any Building</option>
-            <option value="ECSS">ECSS</option>
-            <option value="ENG">ENG</option>
-            <option value="JSOM">JSOM</option>
-            <option value="GR">GR</option>
+            {% for building in buildings %}
+                <option value="{{ building }}">{{ building }}</option>
+            {% endfor %}
         </select><br>
 
         <label for="room">Room Number:</label>
         <select id="room" name="room">
             <option value="Any Room Number">Any Room Number</option>
-            <option value="102">102</option>
-            <option value="301">301</option>
-            <option value="118">118</option>
-            <option value="901">901</option>
-            <option value="208">208</option>
         </select><br>
 
         <label for="date">Date:</label>
@@ -35,33 +29,32 @@
             <button type="submit">Search</button>
         </div>
     </form>
-    <div id="results"></div>
 
-    <script type="text/template">
-        <h2>Search Results</h2>
-        <div class="search-criteria">
-            <h3>Your Search</h3>
-            <p><strong>Building:</strong> <span id="criteria-building"></span></p>
-            <p><strong>Room Number:</strong> <span id="criteria-room"></span></p>
-            <p><strong>Date:</strong> <span id="criteria-date"></span></p>
-            <p><strong>Start Time:</strong> <span id="criteria-start-time"></span></p>
-            <p><strong>End Time:</strong> <span id="criteria-end-time"></span></p>
-        </div>
-        <div class="back-link">
-            <a href="{{ url_for('search') }}">Back to Search</a>
-        </div>
-        <h3>Available Rooms</h3>
-        <table class="results-table">
-            <thead>
-                <tr>
-                    <th>Room</th>
-                    <th>Available starting at</th>
-                    <th>Available until</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody id="results-list">
-            </tbody>
-        </table>
+    <script>
+        // Pass building-to-rooms mapping to JavaScript
+        const buildingToRooms = JSON.parse('{{ building_to_rooms | tojson | safe }}');
+
+        // Update room dropdown based on selected building
+        document.getElementById('building').addEventListener('change', function() {
+            const building = this.value;
+            const roomSelect = document.getElementById('room');
+            roomSelect.innerHTML = '<option value="Any Room Number">Any Room Number</option>';
+            if (building !== 'Any Building' && buildingToRooms[building]) {
+                buildingToRooms[building].forEach(room => {
+                    const option = document.createElement('option');
+                    option.value = room;
+                    option.textContent = room;
+                    roomSelect.appendChild(option);
+                });
+            }
+        });
+
+        // Reset form and room dropdown
+        document.getElementById('reset-button').addEventListener('click', () => {
+            const form = document.getElementById('search-form');
+            form.reset();
+            const roomSelect = document.getElementById('room');
+            roomSelect.innerHTML = '<option value="Any Room Number">Any Room Number</option>';
+        });
     </script>
 {% endblock %}

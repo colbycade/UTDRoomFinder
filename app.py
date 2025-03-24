@@ -1,186 +1,172 @@
 from flask import Flask, render_template, request, jsonify
+from mock_db import get_all_rooms, get_room, get_buildings, get_rooms_by_building
+from datetime import datetime
 
 app = Flask(__name__)
-
-# Updated mock data with event details
-mock_rooms = [
-    {
-        "room": "102",
-        "building": "ECSS",
-        "floor": "2",
-        "available": True,
-        "schedule": {
-            "2025-03-24": [
-                {"start_time": "09:00", "end_time": "10:00", "status": "Occupied", "event_title": "CS 1337"},
-                {"start_time": "14:00", "end_time": "16:00", "status": "Occupied", "event_title": "MATH 2417"}
-            ],
-            "2025-03-25": [
-                {"start_time": "10:00", "end_time": "12:00", "status": "Occupied", "event_title": "PHYS 2125"}
-            ],
-            "2025-03-26": []
-        }
-    },
-    {
-        "room": "301",
-        "building": "ENG",
-        "floor": "2",
-        "available": True,
-        "schedule": {
-            "2025-03-24": [
-                {"start_time": "07:00", "end_time": "09:00", "status": "Available", "event_title": ""},
-                {"start_time": "09:00", "end_time": "11:00", "status": "Occupied", "event_title": "ENGL 1301"},
-                {"start_time": "11:00", "end_time": "13:30", "status": "Available", "event_title": ""},
-                {"start_time": "13:30", "end_time": "14:30", "status": "Occupied", "event_title": "PHYS 2123"},
-                {"start_time": "14:30", "end_time": "17:00", "status": "Available", "event_title": ""}
-            ],
-            "2025-03-25": [
-                {"start_time": "07:00", "end_time": "09:00", "status": "Available", "event_title": ""},
-                {"start_time": "09:00", "end_time": "11:00", "status": "Occupied", "event_title": "ENGL 1301"},
-                {"start_time": "11:00", "end_time": "12:45", "status": "Available", "event_title": ""}
-            ],
-            "2025-03-26": []
-        }
-    },
-    {
-        "room": "118",
-        "building": "JSOM",
-        "floor": "1",
-        "available": True,
-        "schedule": {
-            "2025-03-24": [
-                {"start_time": "10:00", "end_time": "12:00", "status": "Occupied", "event_title": "BA 1310"}
-            ],
-            "2025-03-25": [],
-            "2025-03-26": [
-                {"start_time": "13:00", "end_time": "14:00", "status": "Occupied", "event_title": "ECON 2301"}
-            ]
-        }
-    },
-    {
-        "room": "901",
-        "building": "JSOM",
-        "floor": "2",
-        "available": True,
-        "schedule": {
-            "2025-03-24": [
-                {"start_time": "15:00", "end_time": "17:00", "status": "Occupied", "event_title": "MKT 3300"}
-            ],
-            "2025-03-25": [
-                {"start_time": "09:00", "end_time": "10:00", "status": "Occupied", "event_title": "FIN 3320"}
-            ],
-            "2025-03-26": []
-        }
-    },
-    {
-        "room": "208",
-        "building": "GR",
-        "floor": "4",
-        "available": False,
-        "schedule": {
-            "2025-03-24": [
-                {"start_time": "08:00", "end_time": "18:00", "status": "Occupied", "event_title": "HIST 1301"}
-            ],
-            "2025-03-25": [
-                {"start_time": "10:00", "end_time": "14:00", "status": "Occupied", "event_title": "GOVT 2305"}
-            ],
-            "2025-03-26": [
-                {"start_time": "11:00", "end_time": "13:00", "status": "Occupied", "event_title": "PSY 2301"}
-            ]
-        }
-    }
-]
 
 # Home page with search form
 @app.route('/')
 def search():
-    from datetime import datetime
     today = datetime.now().strftime('%Y-%m-%d')
-    return render_template('search.html', today=today)
+    buildings = get_buildings()
+    building_to_rooms = get_rooms_by_building()
+    return render_template('search.html', today=today, buildings=buildings, building_to_rooms=building_to_rooms)
 
-# Search results (API call with time filtering)
-@app.route('/api/search', methods=['POST'])
-def search_rooms():
+# Search results page
+@app.route('/results', methods=['POST'])
+def search_results():
     building = request.form.get('building')
     room = request.form.get('room')
     date = request.form.get('date')
     start_time = request.form.get('start_time')
     end_time = request.form.get('end_time')
 
+    # Store search criteria for display
+    criteria = {
+        "building": building if building != "Any Building" else "Any Building",
+        "room": room if room != "Any Room Number" else "Any Room Number",
+        "date": date if date else "Any Date",
+        "start_time": start_time if start_time else "Any Start Time",
+        "end_time": end_time if end_time else "Any End Time"
+    }
+
     # Convert times to 24-hour format for comparison
     def to_24hour(time_str):
         if not time_str:
             return None
-        from datetime import datetime
-        return datetime.strptime(time_str, '%I:%M %p').strftime('%H:%M') if 'AM' in time_str or 'PM' in time_str else time_str
+        try:
+            if 'AM' in time_str or 'PM' in time_str:
+                return datetime.strptime(time_str, '%I:%M %p').strftime('%H:%M')
+            if ':' in time_str:  # Simple HH:MM format check
+                return time_str
+            return None
+        except ValueError:
+            return None
 
     start_time_24 = to_24hour(start_time) if start_time else None
     end_time_24 = to_24hour(end_time) if end_time else None
 
     # Find available time slots for the results page
     results = []
-    for room_data in mock_rooms:
+    for room_data in get_all_rooms():
+        # Filter by building if specified
         if building and building != 'Any Building' and room_data['building'] != building:
             continue
+            
+        # Filter by room if specified
         if room and room != 'Any Room Number' and room_data['room'] != room:
             continue
-        if date and date in room_data['schedule']:
-            schedule = room_data['schedule'][date]
-            if not schedule:  # No bookings means available all day
-                results.append({
+
+        # If no date is specified, check all dates in the schedule
+        dates_to_check = [date] if date else room_data['schedule'].keys()
+        available_slots = []
+
+        for check_date in dates_to_check:
+            if check_date not in room_data['schedule']:
+                continue
+
+            schedule = room_data['schedule'][check_date]
+            
+            # Case 1: No bookings means available all day
+            if not schedule:
+                default_start = "07:00"
+                default_end = "22:00"
+                
+                # Apply time filters if specified
+                if (not start_time_24 or start_time_24 <= default_end) and \
+                   (not end_time_24 or end_time_24 >= default_start):
+                    display_start = datetime.strptime(default_start, '%H:%M').strftime('%I:%M %p')
+                    display_end = datetime.strptime(default_end, '%H:%M').strftime('%I:%M %p')
+                    available_slots.append({
+                        "building": room_data['building'],
+                        "floor": room_data['floor'],
+                        "room": room_data['room'],
+                        "available_start": display_start,
+                        "available_until": display_end
+                    })
+                continue
+                
+            # Case 2: Room has a schedule - find available blocks
+            availability_blocks = []
+            default_start = "07:00"
+            default_end = "22:00"
+            
+            # Sort schedule by start time
+            sorted_schedule = sorted(schedule, key=lambda x: x['start_time'])
+            
+            # Initialize with start of day if needed
+            if sorted_schedule and sorted_schedule[0]['start_time'] > default_start:
+                if sorted_schedule[0]['status'] != "Available":
+                    availability_blocks.append({
+                        "start": default_start,
+                        "end": sorted_schedule[0]['start_time']
+                    })
+            
+            # Find gaps between scheduled events
+            for i in range(len(sorted_schedule)):
+                current = sorted_schedule[i]
+                
+                # Add available blocks
+                if current['status'] == "Available":
+                    availability_blocks.append({
+                        "start": current['start_time'],
+                        "end": current['end_time']
+                    })
+                
+                # Check for gap after current block
+                if i < len(sorted_schedule) - 1:
+                    next_block = sorted_schedule[i + 1]
+                    if current['end_time'] < next_block['start_time'] and next_block['status'] != "Available":
+                        availability_blocks.append({
+                            "start": current['end_time'],
+                            "end": next_block['start_time']
+                        })
+            
+            # Add end of day if needed
+            if sorted_schedule and sorted_schedule[-1]['end_time'] < default_end:
+                if sorted_schedule[-1]['status'] != "Available":
+                    availability_blocks.append({
+                        "start": sorted_schedule[-1]['end_time'],
+                        "end": default_end
+                    })
+            
+            # If no schedule at all, room is available all day
+            if not sorted_schedule:
+                availability_blocks.append({
+                    "start": default_start,
+                    "end": default_end
+                })
+            
+            # Filter blocks based on requested time
+            for block in availability_blocks:
+                # Skip if block doesn't meet time criteria
+                if start_time_24 and block['end'] <= start_time_24:
+                    continue
+                if end_time_24 and block['start'] >= end_time_24:
+                    continue
+                
+                # Convert to 12-hour format for display
+                display_start = datetime.strptime(block['start'], '%H:%M').strftime('%I:%M %p')
+                display_end = datetime.strptime(block['end'], '%H:%M').strftime('%I:%M %p')
+                
+                available_slots.append({
                     "building": room_data['building'],
                     "floor": room_data['floor'],
                     "room": room_data['room'],
-                    "available_start": "07:00 AM",
-                    "available_until": "10:00 PM"
+                    "available_start": display_start,
+                    "available_until": display_end
                 })
-            else:
-                # Find available time slots
-                available_start = None
-                available_until = None
-                for i, slot in enumerate(schedule):
-                    if start_time_24 and end_time_24:
-                        slot_start = slot['start_time']
-                        slot_end = slot['end_time']
-                        if (start_time_24 < slot_end and end_time_24 > slot_start):
-                            continue  # Overlaps with an occupied slot
-                    if slot['status'] == "Available":
-                        if not available_start:
-                            available_start = slot['start_time']
-                        available_until = slot['end_time']
-                    else:
-                        if available_start and available_until:
-                            # Convert times to 12-hour format for display
-                            start_12 = datetime.strptime(available_start, '%H:%M').strftime('%I:%M %p')
-                            until_12 = datetime.strptime(available_until, '%H:%M').strftime('%I:%M %p')
-                            if (not start_time_24 or not end_time_24) or (start_time_24 >= available_start and end_time_24 <= available_until):
-                                results.append({
-                                    "building": room_data['building'],
-                                    "floor": room_data['floor'],
-                                    "room": room_data['room'],
-                                    "available_start": start_12,
-                                    "available_until": until_12
-                                })
-                        available_start = None
-                        available_until = None
-                # Check if the last slot is available
-                if available_start and available_until:
-                    start_12 = datetime.strptime(available_start, '%H:%M').strftime('%I:%M %p')
-                    until_12 = datetime.strptime(available_until, '%H:%M').strftime('%I:%M %p')
-                    if (not start_time_24 or not end_time_24) or (start_time_24 >= available_start and end_time_24 <= available_until):
-                        results.append({
-                            "building": room_data['building'],
-                            "floor": room_data['floor'],
-                            "room": room_data['room'],
-                            "available_start": start_12,
-                            "available_until": until_12
-                        })
 
-    return jsonify({"rooms": results})
+        # If the room has any availability, add its first available slot to the results
+        if available_slots:
+            results.extend(available_slots[:1])  # Add only the first available slot for simplicity
+
+    return render_template('results.html', rooms=results, criteria=criteria)
 
 # Room schedule (API call)
 @app.route('/api/schedule/<building>/<floor>/<room>')
 def get_schedule(building, floor, room):
-    room_data = next((r for r in mock_rooms if r['room'] == room and r['building'] == building and r['floor'] == floor), None)
+    room_data = get_room(building, floor, room)
     if room_data:
         return jsonify(room_data['schedule'])
     return jsonify({"error": "Room not found"}), 404
@@ -188,7 +174,6 @@ def get_schedule(building, floor, room):
 # Schedule page
 @app.route('/schedule/<building>/<floor>/<room>')
 def schedule(building, floor, room):
-    from datetime import datetime
     today = datetime.now().strftime('%Y-%m-%d')
     return render_template('schedule.html', building=building, floor=floor, room=room, today=today)
 
@@ -202,6 +187,7 @@ def report_error():
     report_type = request.form.get('report_type')
     event_title = request.form.get('event_title', '')
     explanation = request.form.get('explanation', '')
+    
     # Mock response based on report type
     if report_type == "cancelled":
         return jsonify({"status": "Event marked as cancelled", "building": building, "floor": floor, "room": room, "time_block": time_block, "explanation": explanation})
