@@ -7,11 +7,9 @@
             <input type="date" id="schedule-date" value="{{ today }}">
         </div>
         <div class="schedule-links">
-            <a href="{{ url_for('search') }}">Back to Search Results</a>
-            <a href="#" id="view-on-map">View on Map</a>
+            <a href="{{ url_for('search') }}">Back to Search</a>
         </div>
     </div>
-    <!-- Add the new button here -->
     <div class="schedule-actions">
         <button id="report-missing-event">Report Missing Event</button>
     </div>
@@ -20,7 +18,7 @@
             <tr>
                 <th>Time</th>
                 <th>Status</th>
-                <th>Notes</th>
+                <th>Event</th>
                 <th></th>
             </tr>
         </thead>

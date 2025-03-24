@@ -3,42 +3,9 @@
     <h2>Search Results</h2>
     <div class="search-criteria">
         <h3>Your Search</h3>
-        <p><strong>Building:</strong> {{ criteria.building }}</p>
-        <p><strong>Room Number:</strong> {{ criteria.room }}</p>
-        <p><strong>Date:</strong> {{ criteria.date }}</p>
-        <p><strong>Start Time:</strong> {{ criteria.start_time }}</p>
-        <p><strong>End Time:</strong> {{ criteria.end_time }}</p>
+        <p><strong>Error:</strong> {{ criteria.error }}</p>
     </div>
     <div class="back-link">
         <a href="{{ url_for('search') }}">Back to Search</a>
     </div>
-    <h3>Available Rooms</h3>
-    <table class="results-table">
-        <thead>
-            <tr>
-                <th>Room</th>
-                <th>Available starting at</th>
-                <th>Available until</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            {% if rooms %}
-                {% for room in rooms %}
-                    <tr>
-                        <td>{{ room.building }} {{ room.floor }}.{{ room.room }}</td>
-                        <td>{{ room.available_start }}</td>
-                        <td>{{ room.available_until }}</td>
-                        <td>
-                            <button onclick="window.location.href='/schedule/{{ room.building }}/{{ room.floor }}/{{ room.room }}'">View Schedule</button>
-                        </td>
-                    </tr>
-                {% endfor %}
-            {% else %}
-                <tr>
-                    <td colspan="4">No rooms available.</td>
-                </tr>
-            {% endif %}
-        </tbody>
-    </table>
 {% endblock %}
