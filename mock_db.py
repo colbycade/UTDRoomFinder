@@ -9,26 +9,30 @@
 #     - Time Block (dict): Represents a scheduled event
 #       - start_time (str): Start time in 24-hour format (e.g., "09:00")
 #       - end_time (str): End time in 24-hour format (e.g., "11:00")
-#       - status (str): "Confirmed", "Cancelled", or "User Reported"
+#       - status (str): "Scheduled", "Cancelled", or "User Reported"
 #       - event_title (str): Event name (e.g., "ENGL 1301")
+#       - notes (str): Additional notes about the event or cancellation
 
-# Mock data (remove "Available" entries, set status to "Confirmed")
+# Mock data (with added User Reported and Cancelled events)
 mock_rooms = [
     {
         "room": "2.102",
         "building": "ECSS",
         "schedule": {
-            "2025-03-09": [
-                {"start_time": "09:00", "end_time": "11:00", "status": "Confirmed", "event_title": "CS 1337"},
-            ],
             "2025-03-24": [
-                {"start_time": "09:00", "end_time": "10:00", "status": "Confirmed", "event_title": "CS 1337"},
-                {"start_time": "14:00", "end_time": "16:00", "status": "Confirmed", "event_title": "MATH 2417"}
+                {"start_time": "09:00", "end_time": "11:00", "status": "Scheduled", "event_title": "CS 1337", "notes": ""},
+                {"start_time": "12:00", "end_time": "13:00", "status": "User Reported", "event_title": "Study Group", "notes": "Group project meeting for CS 1337"}
             ],
             "2025-03-25": [
-                {"start_time": "10:00", "end_time": "12:00", "status": "Confirmed", "event_title": "PHYS 2125"}
+                {"start_time": "10:00", "end_time": "12:00", "status": "Scheduled", "event_title": "PHYS 2125", "notes": ""}
             ],
-            "2025-03-26": []
+            "2025-03-26": [
+                {"start_time": "09:00", "end_time": "10:00", "status": "Cancelled", "event_title": "CS 1337", "notes": "Professor out sick"},
+                {"start_time": "14:00", "end_time": "16:00", "status": "Scheduled", "event_title": "MATH 2417", "notes": ""}
+            ],
+            "2025-03-27": [
+                {"start_time": "10:00", "end_time": "12:00", "status": "Scheduled", "event_title": "PHYS 2125", "notes": ""}
+            ]
         }
     },
     {
@@ -36,14 +40,15 @@ mock_rooms = [
         "building": "ENG",
         "schedule": {
             "2025-03-09": [
-                {"start_time": "09:00", "end_time": "11:00", "status": "Confirmed", "event_title": "ENGL 1301"},
+                {"start_time": "09:00", "end_time": "11:00", "status": "Scheduled", "event_title": "ENGL 1301", "notes": ""}
             ],
             "2025-03-24": [
-                {"start_time": "09:00", "end_time": "11:00", "status": "Confirmed", "event_title": "ENGL 1301"},
-                {"start_time": "13:30", "end_time": "14:30", "status": "Confirmed", "event_title": "PHYS 2123"},
+                {"start_time": "09:00", "end_time": "11:00", "status": "Scheduled", "event_title": "ENGL 1301", "notes": ""},
+                {"start_time": "11:30", "end_time": "12:30", "status": "User Reported", "event_title": "Peer Review Session", "notes": "Reviewing essays for ENGL 1301"},
+                {"start_time": "13:30", "end_time": "14:30", "status": "Cancelled", "event_title": "PHYS 2123", "notes": "Lab equipment failure"}
             ],
             "2025-03-25": [
-                {"start_time": "09:00", "end_time": "11:00", "status": "Confirmed", "event_title": "ENGL 1301"},
+                {"start_time": "09:00", "end_time": "11:00", "status": "Scheduled", "event_title": "ENGL 1301", "notes": ""}
             ],
             "2025-03-26": []
         }
@@ -53,14 +58,16 @@ mock_rooms = [
         "building": "JSOM",
         "schedule": {
             "2025-03-09": [
-                {"start_time": "10:00", "end_time": "12:00", "status": "Confirmed", "event_title": "BA 1310"},
+                {"start_time": "10:00", "end_time": "12:00", "status": "Scheduled", "event_title": "BA 1310", "notes": ""}
             ],
             "2025-03-24": [
-                {"start_time": "10:00", "end_time": "12:00", "status": "Confirmed", "event_title": "BA 1310"}
+                {"start_time": "10:00", "end_time": "12:00", "status": "Scheduled", "event_title": "BA 1310", "notes": ""}
             ],
-            "2025-03-25": [],
+            "2025-03-25": [
+                {"start_time": "14:00", "end_time": "15:30", "status": "User Reported", "event_title": "Team Meeting", "notes": "Discussing BA 1310 group presentation"}
+            ],
             "2025-03-26": [
-                {"start_time": "13:00", "end_time": "14:00", "status": "Confirmed", "event_title": "ECON 2301"}
+                {"start_time": "13:00", "end_time": "14:00", "status": "Scheduled", "event_title": "ECON 2301", "notes": ""}
             ]
         }
     },
@@ -69,13 +76,13 @@ mock_rooms = [
         "building": "JSOM",
         "schedule": {
             "2025-03-09": [
-                {"start_time": "15:00", "end_time": "17:00", "status": "Confirmed", "event_title": "MKT 3300"},
+                {"start_time": "15:00", "end_time": "17:00", "status": "Scheduled", "event_title": "MKT 3300", "notes": ""}
             ],
             "2025-03-24": [
-                {"start_time": "15:00", "end_time": "17:00", "status": "Confirmed", "event_title": "MKT 3300"}
+                {"start_time": "15:00", "end_time": "17:00", "status": "Cancelled", "event_title": "MKT 3300", "notes": "Guest speaker unavailable"}
             ],
             "2025-03-25": [
-                {"start_time": "09:00", "end_time": "10:00", "status": "Confirmed", "event_title": "FIN 3320"}
+                {"start_time": "09:00", "end_time": "10:00", "status": "Scheduled", "event_title": "FIN 3320", "notes": ""}
             ],
             "2025-03-26": []
         }
@@ -85,16 +92,17 @@ mock_rooms = [
         "building": "GR",
         "schedule": {
             "2025-03-09": [
-                {"start_time": "08:00", "end_time": "18:00", "status": "Confirmed", "event_title": "HIST 1301"}
+                {"start_time": "08:00", "end_time": "18:00", "status": "Scheduled", "event_title": "HIST 1301", "notes": ""}
             ],
             "2025-03-24": [
-                {"start_time": "08:00", "end_time": "18:00", "status": "Confirmed", "event_title": "HIST 1301"}
+                {"start_time": "08:00", "end_time": "18:00", "status": "Scheduled", "event_title": "HIST 1301", "notes": ""}
             ],
             "2025-03-25": [
-                {"start_time": "10:00", "end_time": "14:00", "status": "Confirmed", "event_title": "GOVT 2305"}
+                {"start_time": "10:00", "end_time": "14:00", "status": "Cancelled", "event_title": "GOVT 2305", "notes": "Class moved online"},
+                {"start_time": "15:00", "end_time": "16:00", "status": "User Reported", "event_title": "Study Session", "notes": "Preparing for GOVT 2305 exam"}
             ],
             "2025-03-26": [
-                {"start_time": "11:00", "end_time": "13:00", "status": "Confirmed", "event_title": "PSY 2301"}
+                {"start_time": "11:00", "end_time": "13:00", "status": "Scheduled", "event_title": "PSY 2301", "notes": ""}
             ]
         }
     }
@@ -123,7 +131,7 @@ def get_rooms_by_building():
         building_to_rooms[building].append(room['room'])
     return building_to_rooms
 
-def add_event(building, room, date, start_time, end_time, event_title, status="User Reported"):
+def add_event(building, room, date, start_time, end_time, event_title, notes="", status="User Reported"):
     """Add an event to the room's schedule for the specified date."""
     room_data = get_room(building, room)
     if not room_data:
@@ -134,7 +142,8 @@ def add_event(building, room, date, start_time, end_time, event_title, status="U
         "start_time": start_time,
         "end_time": end_time,
         "status": status,
-        "event_title": event_title
+        "event_title": event_title,
+        "notes": notes
     })
     # Sort the schedule by start time
     room_data['schedule'][date].sort(key=lambda x: x['start_time'])
@@ -152,14 +161,15 @@ def remove_user_event(building, room, date, time_block):
     ]
     return True
 
-def cancel_event(building, room, date, time_block):
+def cancel_event(building, room, date, time_block, notes=""):
     """Mark an event as cancelled in the room's schedule for the specified date and time block."""
     room_data = get_room(building, room)
     if not room_data or date not in room_data['schedule']:
         return False
     for slot in room_data['schedule'][date]:
-        if slot['start_time'] + ' - ' + slot['end_time'] == time_block and slot['status'] == "Confirmed":
+        if slot['start_time'] + ' - ' + slot['end_time'] == time_block and slot['status'] == "Scheduled":
             slot['status'] = "Cancelled"
+            slot['notes'] = notes
             return True
     return False
 

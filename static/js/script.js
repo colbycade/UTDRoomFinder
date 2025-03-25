@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function loadSchedule() {
     const path = window.location.pathname.split('/').filter(Boolean);
     const building = path[1];
-    const room = path[2]; // Now includes the floor (e.g., "2.301")
+    const room = path[2];
     const date = document.getElementById('schedule-date').value;
     const response = await fetch(`/api/schedule/${building}/${room}`);
     const schedule = await response.json();
@@ -22,7 +22,7 @@ async function loadSchedule() {
     scheduleTable.innerHTML = '';
 
     if (!schedule[date] || schedule[date].length === 0) {
-        scheduleTable.innerHTML = '<tr><td colspan="4">No events scheduled.</td></tr>';
+        scheduleTable.innerHTML = '<tr><td colspan="5">No events scheduled.</td></tr>';
     } else {
         schedule[date].forEach(slot => {
             const tr = document.createElement('tr');
@@ -31,6 +31,7 @@ async function loadSchedule() {
                 <td>${time}</td>
                 <td>${slot.status}</td>
                 <td>${slot.event_title || ''}</td>
+                <td>${slot.notes || ''}</td>
                 <td><button class="report-change" data-time="${time}" data-status="${slot.status}" data-event="${slot.event_title || ''}">Report Change</button></td>
             `;
             scheduleTable.appendChild(tr);
@@ -50,18 +51,18 @@ function showReportDialog(button, mode = 'report') {
     const eventTitleLabel = document.getElementById('event-title-label');
     const startTimeLabel = document.getElementById('start-time-label');
     const endTimeLabel = document.getElementById('end-time-label');
-    const explanationLabel = document.getElementById('explanation-label');
+    const notesLabel = document.getElementById('notes-label');
     const confirmButton = document.getElementById('dialog-confirm');
 
     const path = window.location.pathname.split('/').filter(Boolean);
     const building = path[1];
-    const room = path[2]; // Now includes the floor (e.g., "2.301")
+    const room = path[2];
 
     // Reset visibility of form fields
     eventTitleLabel.style.display = 'none';
     startTimeLabel.style.display = 'none';
     endTimeLabel.style.display = 'none';
-    explanationLabel.style.display = 'none';
+    notesLabel.style.display = 'none';
 
     if (mode === 'add-missing') {
         dialogTitle.textContent = `Is there an event in ${building} ${room} on ${document.getElementById('schedule-date').value}?`;
@@ -69,6 +70,7 @@ function showReportDialog(button, mode = 'report') {
         eventTitleLabel.style.display = 'block';
         startTimeLabel.style.display = 'block';
         endTimeLabel.style.display = 'block';
+        notesLabel.style.display = 'block';
         confirmButton.textContent = 'Add Event';
         confirmButton.onclick = () => submitReport(building, room, null, 'add');
     } else {
@@ -76,18 +78,18 @@ function showReportDialog(button, mode = 'report') {
         const status = button.dataset.status;
         const event = button.dataset.event;
 
-        if (status === 'Confirmed') {
+        if (status === 'Scheduled') {
             dialogTitle.textContent = 'Is this event not happening?';
             dialogMessage.textContent = `Report as cancelled:`;
             eventTitleLabel.style.display = 'none';
-            explanationLabel.style.display = 'block';
+            notesLabel.style.display = 'block';
             confirmButton.textContent = 'Report Cancelled';
             confirmButton.onclick = () => submitReport(building, room, time, 'cancelled');
         } else if (status === 'User Reported') {
             dialogTitle.textContent = 'Is this user-reported event not happening?';
             dialogMessage.textContent = 'Confirm event removal:';
             eventTitleLabel.style.display = 'none';
-            explanationLabel.style.display = 'none';
+            notesLabel.style.display = 'none';
             confirmButton.textContent = 'Remove Event';
             confirmButton.onclick = () => submitReport(building, room, time, 'remove');
         }
@@ -105,13 +107,13 @@ async function submitReport(building, room, time, reportType) {
     const eventTitle = document.getElementById('event-title')?.value || '';
     const startTime = document.getElementById('start-time')?.value || '';
     const endTime = document.getElementById('end-time')?.value || '';
-    const explanation = document.getElementById('explanation')?.value || '';
+    const notes = document.getElementById('notes')?.value || '';
     const date = document.getElementById('schedule-date').value;
     const timeBlock = time || (startTime && endTime ? `${startTime} - ${endTime}` : '');
     const response = await fetch('/api/report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `building=${building}&room=${room}&time_block=${timeBlock}&report_type=${reportType}&event_title=${eventTitle}&explanation=${explanation}&date=${date}`
+        body: `building=${building}&room=${room}&time_block=${timeBlock}&report_type=${reportType}&event_title=${eventTitle}&notes=${notes}&date=${date}`
     });
     const result = await response.json();
     alert(`Report status: ${result.status}`);

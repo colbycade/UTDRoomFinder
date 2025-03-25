@@ -75,7 +75,7 @@ def report_error():
     time_block = request.form.get('time_block')
     report_type = request.form.get('report_type')
     event_title = request.form.get('event_title', '')
-    explanation = request.form.get('explanation', '')
+    notes = request.form.get('notes', '')  # New field for notes
     date = request.form.get('date', datetime.now().strftime('%Y-%m-%d'))
 
     if report_type == "add":
@@ -83,10 +83,10 @@ def report_error():
             start_time, end_time = time_block.split(' - ')
         except ValueError:
             return jsonify({"error": "Invalid time block format"}), 400
-        success = add_event(building, room, date, start_time, end_time, event_title)
+        success = add_event(building, room, date, start_time, end_time, event_title, notes=notes)
         if not success:
             return jsonify({"error": "Room not found"}), 404
-        return jsonify({"status": "Event added", "building": building, "room": room, "time_block": time_block, "event_title": event_title})
+        return jsonify({"status": "Event added", "building": building, "room": room, "time_block": time_block, "event_title": event_title, "notes": notes})
 
     elif report_type == "remove":
         success = remove_user_event(building, room, date, time_block)
@@ -95,9 +95,9 @@ def report_error():
         return jsonify({"status": "Event removed", "building": building, "room": room, "time_block": time_block})
 
     elif report_type == "cancelled":
-        success = cancel_event(building, room, date, time_block)
+        success = cancel_event(building, room, date, time_block, notes=notes)
         if not success:
             return jsonify({"error": "Room or event not found"}), 404
-        return jsonify({"status": "Event marked as cancelled", "building": building, "room": room, "time_block": time_block, "explanation": explanation})
+        return jsonify({"status": "Event marked as cancelled", "building": building, "room": room, "time_block": time_block, "notes": notes})
 
     return jsonify({"status": "Report submitted", "building": building, "room": room, "time_block": time_block})
