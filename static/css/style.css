@@ -372,3 +372,24 @@ button:hover {
         padding: 0.5rem;
     }
 }
+
+.date-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    margin-bottom: 1em;
+}
+
+.date-selector input[type="date"] {
+    padding: 0.5em;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+}
+
+.date-selector button {
+    background-color: #28a745;
+}
+
+.date-selector button:hover {
+    background-color: #218838;
+}

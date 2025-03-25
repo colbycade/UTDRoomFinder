@@ -13,7 +13,6 @@
 #       - event_title (str): Event name (e.g., "ENGL 1301")
 #       - notes (str): Additional notes about the event or cancellation
 
-# Mock data (with added User Reported and Cancelled events)
 mock_rooms = [
     {
         "room": "2.102",
@@ -274,14 +273,30 @@ def find_available_slots(building, room, date, start_time="00:00", end_time="23:
 
     return available_slots
 
+def get_next_availability_on_date(building, room, date, start_time="00:00", end_time="23:59", min_duration=1):
+    """
+    Find the next available time slot on the specified date that meets the criteria.
+    Returns the time slot as a string (e.g., "10:00 - 12:00") or None if no slot is available.
+    """
+    available_slots = find_available_slots(building, room, date, start_time, end_time)
+    min_duration = int(min_duration) if min_duration else 1
+
+    # Find the first slot that meets the minimum duration
+    for slot_start, slot_end in available_slots:
+        slot_duration = to_minutes(slot_end) - to_minutes(slot_start)
+        if slot_duration >= min_duration:
+            return f"{slot_start} - {slot_end}"
+    
+    return None
+
 def has_sufficient_gap(building, room, date, start_time, end_time, min_duration):
     """Check if a room has a gap of at least min_duration minutes between start_time and end_time."""
     available_slots = find_available_slots(building, room, date, start_time, end_time)
     for slot_start, slot_end in available_slots:
         slot_start_minutes = to_minutes(slot_start)
         slot_end_minutes = to_minutes(slot_end)
-        duration = slot_end_minutes - slot_start_minutes
-        if duration >= min_duration:
+        slot_duration = slot_end_minutes - slot_start_minutes
+        if slot_duration >= min_duration:
             return True
     return False
 

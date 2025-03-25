@@ -9,6 +9,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (reportMissingEvent) {
         reportMissingEvent.addEventListener('click', () => showReportDialog(null, 'add-missing'));
     }
+
+    const prevDayButton = document.getElementById('prev-day');
+    const nextDayButton = document.getElementById('next-day');
+    if (prevDayButton && nextDayButton) {
+        prevDayButton.addEventListener('click', () => changeDate(-1));
+        nextDayButton.addEventListener('click', () => changeDate(1));
+    }
 });
 
 async function loadSchedule() {
@@ -42,6 +49,16 @@ async function loadSchedule() {
     document.querySelectorAll('.report-change').forEach(button => {
         button.addEventListener('click', () => showReportDialog(button));
     });
+}
+
+// Function to change the date by a given number of days and reload the schedule
+function changeDate(days) {
+    const dateInput = document.getElementById('schedule-date');
+    const currentDate = new Date(dateInput.value);
+    currentDate.setDate(currentDate.getDate() + days);
+    const newDate = currentDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+    dateInput.value = newDate;
+    loadSchedule();
 }
 
 function showReportDialog(button, mode = 'report') {

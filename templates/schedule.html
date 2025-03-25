@@ -2,12 +2,20 @@
 {% block content %}
     <h2>Room Schedule - {{ building }} {{ room }}</h2>
     <div class="schedule-header">
-        <div>
+        <div class="date-selector">
+            <button id="prev-day">Previous Day</button>
             <label for="schedule-date">Date:</label>
             <input type="date" id="schedule-date" value="{{ today }}">
+            <button id="next-day">Next Day</button>
         </div>
         <div class="schedule-links">
-            <a href="{{ url_for('search') }}">Back to Search</a>
+            <a href="{{ url_for('search', 
+                              building=search_criteria.building_search, 
+                              room=search_criteria.room_search, 
+                              date=search_criteria.date, 
+                              start_time=search_criteria.start_time, 
+                              end_time=search_criteria.end_time, 
+                              duration=search_criteria.duration) }}">Back to Search</a>
         </div>
     </div>
     <div class="schedule-actions">

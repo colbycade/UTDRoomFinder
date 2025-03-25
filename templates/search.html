@@ -1,31 +1,32 @@
 {% extends "base.html" %}
 {% block content %}
     <h2>Find a Room at UTD</h2>
-    <form method="POST" action="{{ url_for('search_results') }}">
+    <form method="POST" action="{{ url_for('search_results') }}" onsubmit="return validateForm()">
         <label for="building">Building:</label>
         <select id="building" name="building" onchange="updateRooms()">
-            <option value="Any Building">Any Building</option>
+            <option value="Any Building" {% if selected_building == "Any Building" %}selected{% endif %}>Any Building</option>
             {% for building in buildings %}
-                <option value="{{ building }}">{{ building }}</option>
+                <option value="{{ building }}" {% if selected_building == building %}selected{% endif %}>{{ building }}</option>
             {% endfor %}
         </select>
 
         <label for="room">Room Number:</label>
         <select id="room" name="room">
-            <option value="Any Room Number">Any Room Number</option>
+            <option value="Any Room Number" {% if selected_room == "Any Room Number" %}selected{% endif %}>Any Room Number</option>
+            <!-- Room options will be populated dynamically -->
         </select>
 
         <label for="date">Date:</label>
-        <input type="date" id="date" name="date" value="{{ today }}">
+        <input type="date" id="date" name="date" value="{{ selected_date or today }}" required>
 
         <label for="start-time">Start Time (optional):</label>
-        <input type="time" id="start-time" name="start_time">
+        <input type="time" id="start-time" name="start_time" value="{{ selected_start_time }}">
 
         <label for="end-time">End Time (optional):</label>
-        <input type="time" id="end-time" name="end_time">
+        <input type="time" id="end-time" name="end_time" value="{{ selected_end_time }}">
 
         <label for="duration">Minimum Availability (minutes):</label>
-        <input type="number" id="duration" name="duration" min="1" value="30" placeholder="e.g., 60">
+        <input type="number" id="duration" name="duration" min="1" value="{{ selected_duration or '30' }}" placeholder="e.g., 60">
 
         <div class="form-buttons">
             <button type="submit">Search</button>
@@ -46,6 +47,9 @@
                     const option = document.createElement('option');
                     option.value = room;
                     option.textContent = room;
+                    if (room === "{{ selected_room }}") {
+                        option.selected = true;
+                    }
                     roomSelect.appendChild(option);
                 });
             }
@@ -68,8 +72,27 @@
             return `${hours}:${minutes}`;
         }
 
+        function validateForm() {
+            const startTime = document.getElementById('start-time').value;
+            const endTime = document.getElementById('end-time').value;
+
+            // Only validate if both start and end times are provided
+            if (startTime && endTime) {
+                const start = new Date(`1970-01-01T${startTime}:00`);
+                const end = new Date(`1970-01-01T${endTime}:00`);
+                if (start >= end) {
+                    alert('Start time must be before end time.');
+                    return false;
+                }
+            }
+            return true;
+        }
+
         // Initialize room dropdown and set default start time on page load
         updateRooms();
-        document.getElementById('start-time').value = getCurrentTime();
+        // Set start time only if not pre-filled
+        if (!document.getElementById('start-time').value) {
+            document.getElementById('start-time').value = getCurrentTime();
+        }
     </script>
 {% endblock %}
