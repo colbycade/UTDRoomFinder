@@ -131,11 +131,47 @@ def get_rooms_by_building():
         building_to_rooms[building].append(room['room'])
     return building_to_rooms
 
+def to_minutes(time_str):
+    """Convert a time string (HH:MM) to minutes since midnight."""
+    hours, minutes = map(int, time_str.split(':'))
+    return hours * 60 + minutes
+
+def check_overlap(building, room, date, start_time, end_time):
+    """Check if the new event overlaps with any existing non-cancelled events."""
+    room_data = get_room(building, room)
+    if not room_data or date not in room_data['schedule']:
+        return False  # No events, so no overlap
+
+    start_minutes = to_minutes(start_time)
+    end_minutes = to_minutes(end_time)
+
+    for slot in room_data['schedule'][date]:
+        if slot['status'] == "Cancelled":
+            continue  # Ignore cancelled events
+        slot_start = to_minutes(slot['start_time'])
+        slot_end = to_minutes(slot['end_time'])
+        # Check for overlap: if the new event starts before the existing event ends and ends after the existing event starts
+        if start_minutes < slot_end and end_minutes > slot_start:
+            return True  # Overlap found
+    return False  # No overlap
+
 def add_event(building, room, date, start_time, end_time, event_title, notes="", status="User Reported"):
-    """Add an event to the room's schedule for the specified date."""
+    """Add an event to the room's schedule for the specified date with validation."""
     room_data = get_room(building, room)
     if not room_data:
-        return False
+        return "Room not found"
+
+    # Validate start time is before end time
+    start_minutes = to_minutes(start_time)
+    end_minutes = to_minutes(end_time)
+    if start_minutes >= end_minutes:
+        return "Start time must be before end time"
+
+    # Check for overlapping events
+    if check_overlap(building, room, date, start_time, end_time):
+        return "Event overlaps with an existing event"
+
+    # Add the event
     if date not in room_data['schedule']:
         room_data['schedule'][date] = []
     room_data['schedule'][date].append({
@@ -169,14 +205,25 @@ def cancel_event(building, room, date, time_block, notes=""):
     for slot in room_data['schedule'][date]:
         if slot['start_time'] + ' - ' + slot['end_time'] == time_block and slot['status'] == "Scheduled":
             slot['status'] = "Cancelled"
-            slot['notes'] = notes
+            # Prepend standard message and append explanation if provided
+            base_message = "User reported event as cancelled."
+            slot['notes'] = base_message if not notes else f"{base_message} Explanation: {notes}"
             return True
     return False
 
-def to_minutes(time_str):
-    """Convert a time string (HH:MM) to minutes since midnight."""
-    hours, minutes = map(int, time_str.split(':'))
-    return hours * 60 + minutes
+def uncancel_event(building, room, date, time_block, notes=""):
+    """Mark a cancelled event as scheduled again in the room's schedule for the specified date and time block."""
+    room_data = get_room(building, room)
+    if not room_data or date not in room_data['schedule']:
+        return False
+    for slot in room_data['schedule'][date]:
+        if slot['start_time'] + ' - ' + slot['end_time'] == time_block and slot['status'] == "Cancelled":
+            slot['status'] = "Scheduled"
+            # Overwrite notes with uncancel message
+            base_message = "User Confirmed."
+            slot['notes'] = base_message if not notes else f"{base_message} Explanation: {notes}"
+            return True
+    return False
 
 def find_available_slots(building, room, date, start_time="00:00", end_time="23:59"):
     """Find all available time slots for a room on a given date within the specified time range."""

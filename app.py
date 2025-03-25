@@ -1,9 +1,10 @@
 from flask import Flask, render_template, request, jsonify
-from mock_db import get_all_rooms, get_room, get_buildings, get_rooms_by_building, add_event, remove_user_event, cancel_event, get_rooms_with_sufficient_gap
+from mock_db import get_all_rooms, get_room, get_buildings, get_rooms_by_building, add_event, remove_user_event, cancel_event, uncancel_event, get_rooms_with_sufficient_gap
 from datetime import datetime
 
 app = Flask(__name__)
 
+# PAGES
 # Home page with search form
 @app.route('/')
 def search():
@@ -48,14 +49,6 @@ def search_results():
         "duration": duration
     })
 
-# Room schedule (API call)
-@app.route('/api/schedule/<building>/<room>')
-def get_schedule(building, room):
-    room_data = get_room(building, room)
-    if room_data:
-        return jsonify(room_data['schedule'])
-    return jsonify({"error": "Room not found"}), 404
-
 # Schedule page
 @app.route('/schedule/<building>/<room>')
 def schedule(building, room):
@@ -67,7 +60,16 @@ def schedule(building, room):
 def map():
     return render_template('map.html')
 
-# Report error (API call)
+# API CALLS
+# Room schedule
+@app.route('/api/schedule/<building>/<room>')
+def get_schedule(building, room):
+    room_data = get_room(building, room)
+    if room_data:
+        return jsonify(room_data['schedule'])
+    return jsonify({"error": "Room not found"}), 404
+
+# Report change
 @app.route('/api/report', methods=['POST'])
 def report_error():
     room = request.form.get('room')
@@ -75,7 +77,7 @@ def report_error():
     time_block = request.form.get('time_block')
     report_type = request.form.get('report_type')
     event_title = request.form.get('event_title', '')
-    notes = request.form.get('notes', '')  # New field for notes
+    notes = request.form.get('notes', '')
     date = request.form.get('date', datetime.now().strftime('%Y-%m-%d'))
 
     if report_type == "add":
@@ -83,9 +85,9 @@ def report_error():
             start_time, end_time = time_block.split(' - ')
         except ValueError:
             return jsonify({"error": "Invalid time block format"}), 400
-        success = add_event(building, room, date, start_time, end_time, event_title, notes=notes)
-        if not success:
-            return jsonify({"error": "Room not found"}), 404
+        result = add_event(building, room, date, start_time, end_time, event_title, notes=notes)
+        if result is not True:
+            return jsonify({"error": result}), 400  # Return validation error
         return jsonify({"status": "Event added", "building": building, "room": room, "time_block": time_block, "event_title": event_title, "notes": notes})
 
     elif report_type == "remove":
@@ -99,5 +101,11 @@ def report_error():
         if not success:
             return jsonify({"error": "Room or event not found"}), 404
         return jsonify({"status": "Event marked as cancelled", "building": building, "room": room, "time_block": time_block, "notes": notes})
+
+    elif report_type == "uncancel":
+        success = uncancel_event(building, room, date, time_block, notes=notes)
+        if not success:
+            return jsonify({"error": "Room or event not found"}), 404
+        return jsonify({"status": "Event marked as scheduled", "building": building, "room": room, "time_block": time_block, "notes": notes})
 
     return jsonify({"status": "Report submitted", "building": building, "room": room, "time_block": time_block})
