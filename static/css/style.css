@@ -261,6 +261,10 @@ button:hover {
     background-color: #ffe6cc;
 }
 
+.schedule-actions {
+    margin-top: 10px;
+}
+
 /* Dialog Styling */
 .dialog {
     position: fixed;
