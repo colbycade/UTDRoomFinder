@@ -2,9 +2,8 @@
 
 # Schema:
 # - Room: Represents a room on campus
-#   - room (str): Room number (e.g., "102")
+#   - room (str): Room number (e.g., "2.102")
 #   - building (str): Building code (e.g., "ECSS")
-#   - floor (str): Floor number (e.g., "2")
 #   - schedule (dict): Mapping of dates to list of time blocks
 #     - Date (str): Format "YYYY-MM-DD" (e.g., "2025-03-24")
 #     - Time Block (dict): Represents a scheduled event
@@ -16,9 +15,8 @@
 # Mock data (remove "Available" entries, set status to "Confirmed")
 mock_rooms = [
     {
-        "room": "102",
+        "room": "2.102",
         "building": "ECSS",
-        "floor": "2",
         "schedule": {
             "2025-03-09": [
                 {"start_time": "09:00", "end_time": "11:00", "status": "Confirmed", "event_title": "CS 1337"},
@@ -34,9 +32,8 @@ mock_rooms = [
         }
     },
     {
-        "room": "301",
+        "room": "2.301",
         "building": "ENG",
-        "floor": "2",
         "schedule": {
             "2025-03-09": [
                 {"start_time": "09:00", "end_time": "11:00", "status": "Confirmed", "event_title": "ENGL 1301"},
@@ -52,9 +49,8 @@ mock_rooms = [
         }
     },
     {
-        "room": "118",
+        "room": "1.118",
         "building": "JSOM",
-        "floor": "1",
         "schedule": {
             "2025-03-09": [
                 {"start_time": "10:00", "end_time": "12:00", "status": "Confirmed", "event_title": "BA 1310"},
@@ -69,9 +65,8 @@ mock_rooms = [
         }
     },
     {
-        "room": "901",
+        "room": "2.901",
         "building": "JSOM",
-        "floor": "2",
         "schedule": {
             "2025-03-09": [
                 {"start_time": "15:00", "end_time": "17:00", "status": "Confirmed", "event_title": "MKT 3300"},
@@ -86,10 +81,8 @@ mock_rooms = [
         }
     },
     {
-        "room": "208",
+        "room": "4.208",
         "building": "GR",
-        "floor": "4",
-        "available": False,
         "schedule": {
             "2025-03-09": [
                 {"start_time": "08:00", "end_time": "18:00", "status": "Confirmed", "event_title": "HIST 1301"}
@@ -112,9 +105,9 @@ def get_all_rooms():
     """Return all rooms in the database."""
     return mock_rooms
 
-def get_room(building, floor, room):
-    """Return a specific room by building, floor, and room number."""
-    return next((r for r in mock_rooms if r['room'] == room and r['building'] == building and r['floor'] == floor), None)
+def get_room(building, room):
+    """Return a specific room by building and room number."""
+    return next((r for r in mock_rooms if r['room'] == room and r['building'] == building), None)
 
 def get_buildings():
     """Return a sorted list of unique buildings."""
@@ -130,9 +123,9 @@ def get_rooms_by_building():
         building_to_rooms[building].append(room['room'])
     return building_to_rooms
 
-def add_event(building, floor, room, date, start_time, end_time, event_title, status="User Reported"):
+def add_event(building, room, date, start_time, end_time, event_title, status="User Reported"):
     """Add an event to the room's schedule for the specified date."""
-    room_data = get_room(building, floor, room)
+    room_data = get_room(building, room)
     if not room_data:
         return False
     if date not in room_data['schedule']:
@@ -147,9 +140,9 @@ def add_event(building, floor, room, date, start_time, end_time, event_title, st
     room_data['schedule'][date].sort(key=lambda x: x['start_time'])
     return True
 
-def remove_user_event(building, floor, room, date, time_block):
+def remove_user_event(building, room, date, time_block):
     """Remove a user-reported event from the room's schedule for the specified date and time block."""
-    room_data = get_room(building, floor, room)
+    room_data = get_room(building, room)
     if not room_data or date not in room_data['schedule']:
         return False
     schedule = room_data['schedule'][date]
@@ -159,9 +152,9 @@ def remove_user_event(building, floor, room, date, time_block):
     ]
     return True
 
-def cancel_event(building, floor, room, date, time_block):
+def cancel_event(building, room, date, time_block):
     """Mark an event as cancelled in the room's schedule for the specified date and time block."""
-    room_data = get_room(building, floor, room)
+    room_data = get_room(building, room)
     if not room_data or date not in room_data['schedule']:
         return False
     for slot in room_data['schedule'][date]:
@@ -169,3 +162,91 @@ def cancel_event(building, floor, room, date, time_block):
             slot['status'] = "Cancelled"
             return True
     return False
+
+def to_minutes(time_str):
+    """Convert a time string (HH:MM) to minutes since midnight."""
+    hours, minutes = map(int, time_str.split(':'))
+    return hours * 60 + minutes
+
+def find_available_slots(building, room, date, start_time="00:00", end_time="23:59"):
+    """Find all available time slots for a room on a given date within the specified time range."""
+    room_data = get_room(building, room)
+    if not room_data or date not in room_data['schedule'] or not room_data['schedule'][date]:
+        # If no events, the entire time range is available
+        return [(start_time, end_time)]
+
+    # Convert times to minutes for easier comparison
+    start_minutes = to_minutes(start_time)
+    end_minutes = to_minutes(end_time)
+
+    # Get events for the day, excluding cancelled ones
+    events = [slot for slot in room_data['schedule'][date] if slot['status'] != "Cancelled"]
+    events.sort(key=lambda x: to_minutes(x['start_time']))
+
+    available_slots = []
+    current_time = start_minutes
+
+    # Check gaps between events
+    for event in events:
+        event_start = to_minutes(event['start_time'])
+        event_end = to_minutes(event['end_time'])
+
+        # Skip events that end before the start time or start after the end time
+        if event_end <= start_minutes or event_start >= end_minutes:
+            continue
+
+        # If there's a gap before this event starts
+        if current_time < event_start and event_start <= end_minutes:
+            slot_start = max(current_time, start_minutes)
+            slot_end = event_start
+            if slot_start < slot_end:
+                available_slots.append((
+                    f"{slot_start // 60:02d}:{slot_start % 60:02d}",
+                    f"{slot_end // 60:02d}:{slot_end % 60:02d}"
+                ))
+
+        # Move the current time to the end of this event
+        current_time = max(current_time, event_end)
+
+    # Check for a gap after the last event
+    if current_time < end_minutes:
+        available_slots.append((
+            f"{current_time // 60:02d}:{current_time % 60:02d}",
+            f"{end_minutes // 60:02d}:{end_minutes % 60:02d}"
+        ))
+
+    return available_slots
+
+def has_sufficient_gap(building, room, date, start_time, end_time, min_duration):
+    """Check if a room has a gap of at least min_duration minutes between start_time and end_time."""
+    available_slots = find_available_slots(building, room, date, start_time, end_time)
+    for slot_start, slot_end in available_slots:
+        slot_start_minutes = to_minutes(slot_start)
+        slot_end_minutes = to_minutes(slot_end)
+        duration = slot_end_minutes - slot_start_minutes
+        if duration >= min_duration:
+            return True
+    return False
+
+def get_rooms_with_sufficient_gap(building, date, start_time, end_time, min_duration):
+    """Return a list of rooms in the specified building with at least one gap of min_duration minutes."""
+    # Default times if not provided
+    start_time = start_time or "00:00"
+    end_time = end_time or "23:59"
+
+    # If no duration is provided, set a minimal duration to ensure some availability
+    min_duration = int(min_duration) if min_duration else 1
+
+    free_rooms = []
+    for room_data in mock_rooms:
+        if building != "Any Building" and room_data['building'] != building:
+            continue
+        room = room_data['room']
+        # If no events on that day, the whole day is available
+        if date not in room_data['schedule'] or not room_data['schedule'][date]:
+            free_rooms.append(room_data)
+            continue
+        # Otherwise, check for sufficient gaps
+        if has_sufficient_gap(room_data['building'], room, date, start_time, end_time, min_duration):
+            free_rooms.append(room_data)
+    return free_rooms

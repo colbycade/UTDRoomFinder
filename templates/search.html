@@ -1,44 +1,46 @@
 {% extends "base.html" %}
 {% block content %}
-    <h2>Find an Open Room</h2>
-    <form id="search-form" action="{{ url_for('search_results') }}" method="POST">
+    <h2>Find a Room at UTD</h2>
+    <form method="POST" action="{{ url_for('search_results') }}">
         <label for="building">Building:</label>
-        <select id="building" name="building">
+        <select id="building" name="building" onchange="updateRooms()">
             <option value="Any Building">Any Building</option>
             {% for building in buildings %}
                 <option value="{{ building }}">{{ building }}</option>
             {% endfor %}
-        </select><br>
+        </select>
 
         <label for="room">Room Number:</label>
         <select id="room" name="room">
             <option value="Any Room Number">Any Room Number</option>
-        </select><br>
+        </select>
 
         <label for="date">Date:</label>
-        <input type="date" id="date" name="date" value="{{ today }}"><br>
+        <input type="date" id="date" name="date" value="{{ today }}">
 
-        <label for="start_time">Start Time:</label>
-        <input type="time" id="start_time" name="start_time"><br>
+        <label for="start-time">Start Time (optional):</label>
+        <input type="time" id="start-time" name="start_time">
 
-        <label for="end_time">End Time:</label>
-        <input type="time" id="end_time" name="end_time"><br>
+        <label for="end-time">End Time (optional):</label>
+        <input type="time" id="end-time" name="end_time">
+
+        <label for="duration">Desired Study Duration (minutes):</label>
+        <input type="number" id="duration" name="duration" min="1" value="60" placeholder="e.g., 60">
 
         <div class="form-buttons">
-            <button type="button" id="reset-button">Reset</button>
             <button type="submit">Search</button>
+            <button type="button" id="reset-button" onclick="resetForm()">Reset</button>
         </div>
     </form>
 
     <script>
-        // Pass building-to-rooms mapping to JavaScript
         const buildingToRooms = JSON.parse('{{ building_to_rooms | tojson | safe }}');
 
-        // Update room dropdown based on selected building
-        document.getElementById('building').addEventListener('change', function() {
-            const building = this.value;
+        function updateRooms() {
+            const building = document.getElementById('building').value;
             const roomSelect = document.getElementById('room');
             roomSelect.innerHTML = '<option value="Any Room Number">Any Room Number</option>';
+
             if (building !== 'Any Building' && buildingToRooms[building]) {
                 buildingToRooms[building].forEach(room => {
                     const option = document.createElement('option');
@@ -47,14 +49,27 @@
                     roomSelect.appendChild(option);
                 });
             }
-        });
+        }
 
-        // Reset form and room dropdown
-        document.getElementById('reset-button').addEventListener('click', () => {
-            const form = document.getElementById('search-form');
-            form.reset();
-            const roomSelect = document.getElementById('room');
-            roomSelect.innerHTML = '<option value="Any Room Number">Any Room Number</option>';
-        });
+        function resetForm() {
+            document.getElementById('building').value = 'Any Building';
+            document.getElementById('room').value = 'Any Room Number';
+            document.getElementById('date').value = '{{ today }}';
+            document.getElementById('start-time').value = getCurrentTime();
+            document.getElementById('end-time').value = '';
+            document.getElementById('duration').value = '60';
+            updateRooms();
+        }
+
+        function getCurrentTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            return `${hours}:${minutes}`;
+        }
+
+        // Initialize room dropdown and set default start time on page load
+        updateRooms();
+        document.getElementById('start-time').value = getCurrentTime();
     </script>
 {% endblock %}

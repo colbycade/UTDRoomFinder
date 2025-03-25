@@ -3,8 +3,37 @@
     <h2>Search Results</h2>
     <div class="search-criteria">
         <h3>Your Search</h3>
-        <p><strong>Error:</strong> {{ criteria.error }}</p>
+        <p><strong>Building:</strong> {{ criteria.building }}</p>
+        <p><strong>Room:</strong> {{ criteria.room }}</p>
+        <p><strong>Date:</strong> {{ criteria.date }}</p>
+        <p><strong>Time Range:</strong> {{ criteria.start_time }} - {{ criteria.end_time }}</p>
+        <p><strong>Minimum Duration:</strong> {{ criteria.duration }} minutes</p>
+        {% if criteria.error %}
+            <p><strong>Error:</strong> {{ criteria.error }}</p>
+        {% endif %}
     </div>
+    {% if not criteria.error and rooms %}
+        <table class="results-table">
+            <thead>
+                <tr>
+                    <th>Building</th>
+                    <th>Room</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for room in rooms %}
+                    <tr>
+                        <td>{{ room.building }}</td>
+                        <td>{{ room.room }}</td>
+                        <td>
+                            <a href="{{ url_for('schedule', building=room.building, room=room.room) }}">View Schedule</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
     <div class="back-link">
         <a href="{{ url_for('search') }}">Back to Search</a>
     </div>

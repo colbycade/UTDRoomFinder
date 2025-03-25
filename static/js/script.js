@@ -14,10 +14,9 @@ document.addEventListener('DOMContentLoaded', () => {
 async function loadSchedule() {
     const path = window.location.pathname.split('/').filter(Boolean);
     const building = path[1];
-    const floor = path[2];
-    const room = path[3];
+    const room = path[2]; // Now includes the floor (e.g., "2.301")
     const date = document.getElementById('schedule-date').value;
-    const response = await fetch(`/api/schedule/${building}/${floor}/${room}`);
+    const response = await fetch(`/api/schedule/${building}/${room}`);
     const schedule = await response.json();
     const scheduleTable = document.getElementById('schedule');
     scheduleTable.innerHTML = '';
@@ -56,8 +55,7 @@ function showReportDialog(button, mode = 'report') {
 
     const path = window.location.pathname.split('/').filter(Boolean);
     const building = path[1];
-    const floor = path[2];
-    const room = path[3];
+    const room = path[2]; // Now includes the floor (e.g., "2.301")
 
     // Reset visibility of form fields
     eventTitleLabel.style.display = 'none';
@@ -66,13 +64,13 @@ function showReportDialog(button, mode = 'report') {
     explanationLabel.style.display = 'none';
 
     if (mode === 'add-missing') {
-        dialogTitle.textContent = `Is there an event in ${building} ${floor}.${room} on ${document.getElementById('schedule-date').value}?`;
+        dialogTitle.textContent = `Is there an event in ${building} ${room} on ${document.getElementById('schedule-date').value}?`;
         dialogMessage.textContent = 'Let us know:';
         eventTitleLabel.style.display = 'block';
         startTimeLabel.style.display = 'block';
         endTimeLabel.style.display = 'block';
         confirmButton.textContent = 'Add Event';
-        confirmButton.onclick = () => submitReport(building, floor, room, null, 'add');
+        confirmButton.onclick = () => submitReport(building, room, null, 'add');
     } else {
         const time = button.dataset.time;
         const status = button.dataset.status;
@@ -84,14 +82,14 @@ function showReportDialog(button, mode = 'report') {
             eventTitleLabel.style.display = 'none';
             explanationLabel.style.display = 'block';
             confirmButton.textContent = 'Report Cancelled';
-            confirmButton.onclick = () => submitReport(building, floor, room, time, 'cancelled');
+            confirmButton.onclick = () => submitReport(building, room, time, 'cancelled');
         } else if (status === 'User Reported') {
             dialogTitle.textContent = 'Is this user-reported event not happening?';
             dialogMessage.textContent = 'Confirm event removal:';
             eventTitleLabel.style.display = 'none';
             explanationLabel.style.display = 'none';
             confirmButton.textContent = 'Remove Event';
-            confirmButton.onclick = () => submitReport(building, floor, room, time, 'remove');
+            confirmButton.onclick = () => submitReport(building, room, time, 'remove');
         }
         // Ignore "Cancelled" events for reporting changes
     }
@@ -103,7 +101,7 @@ function showReportDialog(button, mode = 'report') {
     };
 }
 
-async function submitReport(building, floor, room, time, reportType) {
+async function submitReport(building, room, time, reportType) {
     const eventTitle = document.getElementById('event-title')?.value || '';
     const startTime = document.getElementById('start-time')?.value || '';
     const endTime = document.getElementById('end-time')?.value || '';
@@ -113,7 +111,7 @@ async function submitReport(building, floor, room, time, reportType) {
     const response = await fetch('/api/report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `building=${building}&floor=${floor}&room=${room}&time_block=${timeBlock}&report_type=${reportType}&event_title=${eventTitle}&explanation=${explanation}&date=${date}`
+        body: `building=${building}&room=${room}&time_block=${timeBlock}&report_type=${reportType}&event_title=${eventTitle}&explanation=${explanation}&date=${date}`
     });
     const result = await response.json();
     alert(`Report status: ${result.status}`);
