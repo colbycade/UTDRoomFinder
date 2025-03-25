@@ -118,9 +118,6 @@ def search_results():
         }
         rooms_with_availability.append(room_data)
 
-    # Debug the value of room before setting criteria
-    print(f"Setting criteria.room to: {room} (type: {type(room)})")
-
     return render_template('results.html', rooms=rooms_with_availability, criteria={
         "building": building,
         "room": room,
@@ -143,16 +140,14 @@ def get_schedule(building, room):
 def schedule(building, room):
     today = datetime.now().strftime('%Y-%m-%d')
     # Ensure search_criteria is always provided
-    search_criteria = request.args.to_dict()
-    if not search_criteria:
-        search_criteria = {
-            'building': building,
-            'room': room,
-            'date': today,
-            'start_time': '',
-            'end_time': '',
-            'duration': ''
-        }
+    search_criteria = {
+        'building': request.args.get('building_search', building),
+        'room': request.args.get('room_search', room),
+        'date': request.args.get('date', today),
+        'start_time': request.args.get('start_time', ''),
+        'end_time': request.args.get('end_time', ''),
+        'duration': request.args.get('duration', '')
+    }
     return render_template('schedule.html', 
                          building=building, 
                          room=room, 

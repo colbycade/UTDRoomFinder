@@ -9,13 +9,15 @@
             <button id="next-day">Next Day</button>
         </div>
         <div class="schedule-links">
-            <a href="{{ url_for('search', 
-                              building=search_criteria.building_search, 
-                              room=search_criteria.room_search, 
-                              date=search_criteria.date, 
-                              start_time=search_criteria.start_time, 
-                              end_time=search_criteria.end_time, 
-                              duration=search_criteria.duration) }}">Back to Search</a>
+            <form method="POST" action="{{ url_for('search_results') }}">
+                <input type="hidden" name="building" value="{{ search_criteria.building }}">
+                <input type="hidden" name="room" value="{{ search_criteria.room }}">
+                <input type="hidden" name="date" value="{{ search_criteria.date }}">
+                <input type="hidden" name="start_time" value="{{ search_criteria.start_time }}">
+                <input type="hidden" name="end_time" value="{{ search_criteria.end_time }}">
+                <input type="hidden" name="duration" value="{{ search_criteria.duration }}">
+                <button type="submit">Back to Results</button>
+            </form>
         </div>
     </div>
     <div class="schedule-actions">
