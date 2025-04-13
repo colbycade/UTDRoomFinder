@@ -17,17 +17,17 @@ Follow these steps to set up and run the application:
 3. **Create a Virtual Environment:**
    - Create a virtual environment to isolate dependencies:
      ```
-     python -m venv venv
+     python -m venv .venv
      ```
 
 4. **Activate the Virtual Environment:**
    - On Linux/macOS:
      ```
-     source venv/bin/activate
+     source .venv/bin/activate
      ```
    - On Windows:
      ```
-     .\venv\Scripts\activate
+     .\.venv\Scripts\activate
      ```
 
 5. **Install Dependencies:**
