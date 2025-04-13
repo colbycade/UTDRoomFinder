@@ -22,9 +22,15 @@ class MockDatabase(DatabaseInterface):
     def __init__(self):
         self.rooms = []
 
-    def initialize_db(self):
+    def initialize_db(self, generate_data=True):
         """Initialize the mock database with room data."""
-        self.rooms = self._create_mock_rooms()
+        if generate_data:
+            self.rooms = self._create_mock_rooms()
+        return True
+    
+    def clear_db(self):
+        """Clear the mock database."""
+        self.rooms = []
         return True
 
     # Generate a list of dates for the next school week (Monday to Friday) to use in the mock data

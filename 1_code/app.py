@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, url_for
+from flask import Flask, render_template, request, jsonify
 from db_interface import DatabaseInterface
 from mock_db import MockDatabase
 from mongodb import MongoDatabase
