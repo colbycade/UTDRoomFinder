@@ -7,15 +7,18 @@
 
 /* Body styling with UTD Orange background */
 body {
-    background-color: #ff6200;
+    background-color: rgb(76, 175, 80);
     font-family: Arial, sans-serif;
     min-height: 100vh;
     padding: 20px;
+    background-image:
+        
+        radial-gradient(circle at 0% 225% , rgba(245, 129, 41, 1), 2000px, transparent 2000px); /* Orange band */
 }
 
 /* Navigation styling */
 nav {
-    background-color: white;
+    background-color: rgb(219, 219, 219);
     padding: 10px 20px;
     margin-bottom: 20px;
     border-radius: 5px;
@@ -53,13 +56,13 @@ nav ul li a {
 }
 
 nav ul li a:hover {
-    color: #ff6200;
+    color: #ff924f;
     text-decoration: underline;
 }
 
 /* Main content area */
 main {
-    background-color: white;
+    background-color: rgb(219, 219, 219);
     padding: 2rem;
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -147,11 +150,11 @@ button {
 }
 
 button:hover {
-    background-color: #ff6200;
+    background-color: #ff924f;
 }
 
 #reset-button {
-    background-color: #ccc;
+    background-color: #bebebe;
 }
 
 #reset-button:hover {
@@ -183,7 +186,7 @@ button:hover {
 }
 
 .back-link a:hover {
-    color: #ff6200;
+    color: #ff924f;
     text-decoration: underline;
 }
 
@@ -231,7 +234,7 @@ button:hover {
 }
 
 .schedule-links a:hover {
-    color: #ff6200;
+    color: #ff924f;
     text-decoration: underline;
 }
 
@@ -395,5 +398,49 @@ button:hover {
 }
 
 .date-selector button:hover {
-    background-color: #218838;
+    background-color: #ff924f;
+}
+
+/*Styling for "Minimum Availability" button*/
+.input-group {
+    display: flex;
+    flex-direction: column; /* Align label and input in a row */
+    align-items: flex-start; /* Vertically align items */
+    margin-bottom: 25px;
+}
+
+.input-group label {
+    text-align: left;
+    margin-bottom: 10px; /* Add some space between label and input */
+    color: #000000;
+    flex-shrink: 0; /* Prevent label from shrinking */
+    width: auto; /* Adjust width as needed */
+}
+
+.input-with-unit {
+    display: flex;
+    align-items: center; /* Align input and unit horizontally */
+    margin-left: 85px;
+}
+
+.input-with-unit input[type="number"] {
+    padding: 10px;
+    border: 2px solid #008000;
+    border-radius: 4px;
+    font-size: 16px;
+    text-align: center;
+    flex-grow: 1; /* Allow input to take remaining space */
+    width: 100px; /* Adjust width */
+}
+
+.input-with-unit input[type="number"]:focus {
+    outline: none;
+    border-color: #ff924f; /* Highlight on focus */
+    box-shadow: 0 0 5px #df8045; /* Add a subtle shadow on focus */
+}
+
+.input-with-unit .input-unit {
+    margin-left: 5px; /* Add some space between input and unit */
+    color: #000000;
+    flex-shrink: 0; /* Prevent unit from shrinking */
 }
