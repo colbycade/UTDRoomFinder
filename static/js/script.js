@@ -33,7 +33,12 @@ async function loadSchedule() {
         return;
     }
 
-    schedule[date].forEach(slot => {
+    // Sort schedule by start_time
+    const sortedSchedule = schedule[date].sort((a, b) => {
+        return a.start_time.localeCompare(b.start_time);
+    });
+
+    sortedSchedule.forEach(slot => {
         const tr = document.createElement('tr');
         const time_block = `${slot.start_time} - ${slot.end_time}`;
         tr.innerHTML = `
