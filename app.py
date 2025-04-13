@@ -5,7 +5,6 @@ from mongodb import MongoDatabase
 from util import to_minutes
 from datetime import datetime
 import os
-import atexit
 
 app = Flask(__name__)
 
