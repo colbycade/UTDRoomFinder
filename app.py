@@ -1,12 +1,27 @@
 from flask import Flask, render_template, request, jsonify, url_for
-from mongodb import initialize_db, get_room, get_buildings, get_rooms_by_building, add_event, remove_user_event, cancel_event, uncancel_event, get_rooms_with_sufficient_gap, get_next_availability_on_date, to_minutes
+from db_interface import DatabaseInterface
+from mock_db import MockDatabase
+from mongodb import MongoDatabase
+from util import to_minutes
 from datetime import datetime
+import os
+import atexit
 
 app = Flask(__name__)
 
-# Initailize Database
+# Select database based on environment variable
+DB_TYPE = os.getenv("DB_TYPE", "mock")  # Default to 'mock'
+
+def get_db() -> DatabaseInterface:
+    if DB_TYPE.lower() == "mongo":
+        return MongoDatabase()
+    else:
+        return MockDatabase()
+
+# Initialize the database
 try:
-    initialize_db()
+    db = get_db()
+    db.initialize_db()
 except Exception as e:
     print(f"Database initialization failed: {e}")
     raise
@@ -16,8 +31,8 @@ except Exception as e:
 @app.route('/')
 def search():
     today = datetime.now().strftime('%Y-%m-%d')
-    buildings = get_buildings()
-    building_to_rooms = get_rooms_by_building()
+    buildings = db.get_buildings()
+    building_to_rooms = db.get_rooms_by_building()
     
     # Get query parameters to pre-fill the form
     building = request.args.get('building', 'Any Building')
@@ -90,11 +105,11 @@ def search_results():
     end_time = end_time or "23:59"
 
     # Find rooms with sufficient gaps
-    rooms = get_rooms_with_sufficient_gap(building, date, start_time, end_time, duration)
+    rooms = db.get_rooms_with_sufficient_gap(building, date, start_time, end_time, duration)
 
     # If a specific room is selected, filter the rooms list to only include that room
     if building != "Any Building" and room != "Any Room Number":
-        room_data = get_room(building, room)
+        room_data = db.get_room(building, room)
         if not room_data:
             return render_template('results.html', rooms=[], criteria={
                 "building": building,
@@ -111,7 +126,7 @@ def search_results():
     # Compute next availability for each room on the specified date
     rooms_with_availability = []
     for room_item in rooms:
-        next_slot = get_next_availability_on_date(
+        next_slot = db.get_next_availability_on_date(
             room_item['building'],
             room_item['room'],
             date,
@@ -143,7 +158,7 @@ def map():
 # Get room schedule
 @app.route('/api/schedule/<building>/<room>')
 def get_schedule(building, room):
-    room_data = get_room(building, room)
+    room_data = db.get_room(building, room)
     if room_data:
         return jsonify(room_data['schedule'])
     return jsonify({"error": "Room not found"}), 404
@@ -182,7 +197,7 @@ def report_error():
     print(f"Received report: {report_type} for {building} {room} on {date} from {start_time} to {end_time}")  # Debugging
 
     if report_type == "add":
-        result = add_event(building, room, date, start_time, end_time, event_title, notes=notes)
+        result = db.add_event(building, room, date, start_time, end_time, event_title, notes=notes)
         if result is not True:
             return jsonify({"error": result}), 400  # Return validation error
         return jsonify({
@@ -196,7 +211,7 @@ def report_error():
             })
 
     elif report_type == "remove":
-        success = remove_user_event(building, room, date, start_time, end_time)
+        success = db.remove_user_event(building, room, date, start_time, end_time)
         if not success:
             return jsonify({"error": "Room or event not found"}), 404
         return jsonify({
@@ -208,7 +223,7 @@ def report_error():
             })
 
     elif report_type == "cancelled":
-        success = cancel_event(building, room, date, start_time, end_time, notes=notes)
+        success = db.cancel_event(building, room, date, start_time, end_time, notes=notes)
         if not success:
             return jsonify({"error": "Room or event not found"}), 404
         return jsonify({
@@ -221,7 +236,7 @@ def report_error():
             })
 
     elif report_type == "uncancel":
-        success = uncancel_event(building, room, date, start_time, end_time, notes=notes)
+        success = db.uncancel_event(building, room, date, start_time, end_time, notes=notes)
         if not success:
             return jsonify({"error": "Room or event not found"}), 404
         return jsonify({

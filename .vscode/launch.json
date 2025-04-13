@@ -2,33 +2,35 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python Flask",
+            "name": "Flask (Mock DB)",
             "type": "debugpy",
             "request": "launch",
             "module": "flask",
             "env": {
                 "FLASK_APP": "app.py",
-                "FLASK_DEBUG": "1"
+                "FLASK_DEBUG": "1",
+                "DB_TYPE": "mock"
             },
             "args": [
                 "run",
-                "--no-debugger",
                 "--no-reload"
             ],
             "jinja": true,
             "autoStartBrowser": false
         },
         {
-            "name": "Python Debugger: Flask",
+            "name": "Flask (Mongo DB)",
             "type": "debugpy",
             "request": "launch",
             "module": "flask",
             "env": {
                 "FLASK_APP": "app.py",
-                "FLASK_DEBUG": "1"
+                "FLASK_DEBUG": "1",
+                "DB_TYPE": "mongo"
             },
             "args": [
                 "run",
+                "--no-reload"
             ],
             "jinja": true,
             "autoStartBrowser": false
