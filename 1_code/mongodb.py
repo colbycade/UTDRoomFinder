@@ -74,7 +74,7 @@ class MongoDatabase(DatabaseInterface):
             return "Start time must be before end time"
 
         # Check for overlapping events
-        if self.check_overlap(building, room, date, start_time, end_time):
+        if self._check_overlap(building, room, date, start_time, end_time):
             return "Event overlaps with an existing event"
 
         new_event = {
@@ -182,7 +182,7 @@ class MongoDatabase(DatabaseInterface):
         
         return result.modified_count > 0
 
-    def check_overlap(self, building, room, date, start_time, end_time):
+    def _check_overlap(self, building, room, date, start_time, end_time):
         """Check if the new event overlaps with any existing non-cancelled events."""
         room_data = self.get_room(building, room)
         if not room_data or date not in room_data.get('schedule', {}):
@@ -201,7 +201,7 @@ class MongoDatabase(DatabaseInterface):
                 return True  # Overlap found
         return False  # No overlap
 
-    def find_available_slots(self, building, room, date, start_time="00:00", end_time="23:59"):
+    def _find_available_slots(self, building, room, date, start_time="00:00", end_time="23:59"):
         """Find all available time slots for a room on a given date."""
         room_data = self.get_room(building, room)
         if not room_data or date not in room_data.get('schedule', {}) or not room_data['schedule'][date]:
@@ -252,7 +252,7 @@ class MongoDatabase(DatabaseInterface):
 
     def get_next_availability_on_date(self, building, room, date, start_time="00:00", end_time="23:59", min_duration=1):
         """Find the next available time slot that meets the minimum duration."""
-        available_slots = self.find_available_slots(building, room, date, start_time, end_time)
+        available_slots = self._find_available_slots(building, room, date, start_time, end_time)
         min_duration = int(min_duration) if min_duration else 1
 
         # Find the first slot that meets the minimum duration
@@ -265,7 +265,7 @@ class MongoDatabase(DatabaseInterface):
 
     def has_sufficient_gap(self, building, room, date, start_time, end_time, min_duration):
         """Check if a room has a gap of sufficient duration."""
-        available_slots = self.find_available_slots(building, room, date, start_time, end_time)
+        available_slots = self._find_available_slots(building, room, date, start_time, end_time)
         min_duration = int(min_duration) if min_duration else 1
         
         for slot_start, slot_end in available_slots:
