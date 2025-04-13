@@ -7,7 +7,7 @@
             "request": "launch",
             "module": "flask",
             "env": {
-                "FLASK_APP": "app.py",
+                "FLASK_APP": "1_code/app.py",
                 "FLASK_DEBUG": "1",
                 "DB_TYPE": "mock"
             },
@@ -24,7 +24,7 @@
             "request": "launch",
             "module": "flask",
             "env": {
-                "FLASK_APP": "app.py",
+                "FLASK_APP": "1_code/app.py",
                 "FLASK_DEBUG": "1",
                 "DB_TYPE": "mongo"
             },
