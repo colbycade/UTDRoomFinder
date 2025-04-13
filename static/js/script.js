@@ -35,13 +35,17 @@ async function loadSchedule() {
 
     schedule[date].forEach(slot => {
         const tr = document.createElement('tr');
-        const time = `${slot.start_time} - ${slot.end_time}`;
+        const time_block = `${slot.start_time} - ${slot.end_time}`;
         tr.innerHTML = `
-            <td>${time}</td>
+            <td>${time_block}</td>
             <td>${slot.status}</td>
             <td>${slot.event_title || ''}</td>
             <td>${slot.notes || ''}</td>
-            <td><button class="report-change" data-time="${time}" data-status="${slot.status}" data-event="${slot.event_title || ''}">Report Change</button></td>
+            <td>
+                <button class="report-change" start-time="${slot.start_time}" end-time="${slot.end_time}" data-status="${slot.status}" data-event="${slot.event_title || ''}">
+                    Report Change
+                </button>
+            </td>
         `;
         scheduleTable.appendChild(tr);
     });
@@ -86,12 +90,18 @@ function showReportDialog(button, mode = 'report') {
     // Extract building and room from the URL path
     const [_, building, room] = window.location.pathname.split('/').filter(Boolean);
 
-    // Reset form field visibility
+    // Reset form field visibility and values
     const resetFormFields = () => {
         eventTitleLabel.style.display = 'none';
         startTimeLabel.style.display = 'none';
         endTimeLabel.style.display = 'none';
         notesLabel.style.display = 'none';
+
+        // Clear input values
+        document.getElementById('event-title').value = '';
+        document.getElementById('start-time').value = '';
+        document.getElementById('end-time').value = '';
+        document.getElementById('notes').value = '';
     };
     resetFormFields();
 
@@ -103,8 +113,14 @@ function showReportDialog(button, mode = 'report') {
         showTimeFields: false,
         showNotes: false,
         confirmText: '',
-        reportType: '',
-        time: null
+        reportType: ''
+    };
+
+    // For storing reference to the original event
+    let eventData = {
+        startTime: '',
+        endTime: '',
+        title: ''
     };
 
     if (mode === 'add-missing') {
@@ -117,11 +133,18 @@ function showReportDialog(button, mode = 'report') {
         config.confirmText = 'Add Event';
         config.reportType = 'add';
     } else {
-        // Mode: Report a change to an existing event
-        const time = button.dataset.time;
+        // Mode: Report a change to an existing event   
         const status = button.dataset.status;
 
-        config.time = time;
+        // Store the original event details     
+        eventData.title = button.dataset.event;
+        eventData.startTime = button.getAttribute('start-time');
+        eventData.endTime = button.getAttribute('end-time');
+
+        // Set hidden form fields to match the event's data
+        document.getElementById('start-time').value = eventData.startTime;
+        document.getElementById('end-time').value = eventData.endTime;
+        document.getElementById('event-title').value = eventData.title;
 
         if (status === 'Scheduled') {
             config.title = 'Is this event not happening?';
@@ -151,7 +174,7 @@ function showReportDialog(button, mode = 'report') {
     endTimeLabel.style.display = config.showTimeFields ? 'block' : 'none';
     notesLabel.style.display = config.showNotes ? 'block' : 'none';
     confirmButton.textContent = config.confirmText;
-    confirmButton.onclick = () => submitReport(building, room, config.time, config.reportType);
+    confirmButton.onclick = () => submitReport(building, room, config.reportType);
 
     // Show the dialog
     dialog.style.display = 'flex';
@@ -162,20 +185,20 @@ function showReportDialog(button, mode = 'report') {
     };
 }
 
-async function submitReport(building, room, time, reportType) {
+async function submitReport(building, room, reportType) {
     // Collect form data
     const eventTitle = document.getElementById('event-title')?.value || '';
     const startTime = document.getElementById('start-time')?.value || '';
     const endTime = document.getElementById('end-time')?.value || '';
     const notes = document.getElementById('notes')?.value || '';
-    const date = document.getElementById('schedule-date').value;
-    const timeBlock = time || (startTime && endTime ? `${startTime} - ${endTime}` : '');
+    const date = document.getElementById('schedule-date').value; //YYYY-MM-DD
 
     // Use URLSearchParams to properly encode the form data
     const formData = new URLSearchParams();
     formData.append('building', building);
     formData.append('room', room);
-    formData.append('time_block', timeBlock);
+    formData.append('start_time', startTime);
+    formData.append('end_time', endTime);
     formData.append('report_type', reportType);
     formData.append('event_title', eventTitle);
     formData.append('notes', notes);

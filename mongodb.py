@@ -1,6 +1,7 @@
 from pymongo.mongo_client import MongoClient
 import certifi
 import os
+from datetime import time
 
 SEMESTER_COLLECTION = "2025_Spring"
 DATABASE_NAME = "database"
@@ -43,14 +44,11 @@ def to_minutes(time_str):
     hours, minutes = map(int, time_str.split(':'))
     return hours * 60 + minutes
 
-def parse_time_block(time_str):
-    """Parse a time range string (e.g., "14:30 - 15:45") into start and end times."""
-    try:
-        start_time, end_time = time_str.split(" - ")
-        return start_time, end_time
-    except ValueError:
-        print(f"Unexpected time range format: {time_str}")
-        return None, None
+def to_time_str(minutes):
+    """Convert minutes since midnight to a time string (HH:MM)."""
+    hours = minutes // 60
+    minutes = minutes % 60
+    return time(hours, minutes).strftime("%H:%M")
 
 # Database Operations
 def get_room(building, room):
@@ -116,10 +114,9 @@ def add_event(building, room, date, start_time, end_time, event_title="", notes=
     
     return True
 
-def remove_user_event(building, room, date, time_block):
+def remove_user_event(building, room, date, start_time, end_time):
     """Remove a user-reported event from the room's schedule."""
-    start_time, end_time = parse_time_block(time_block)
-    if not start_time or not end_time:
+    if not all([building, room, date, start_time, end_time]):
         return False
     
     result = collection.update_one(
@@ -133,10 +130,9 @@ def remove_user_event(building, room, date, time_block):
     
     return result.modified_count > 0
 
-def cancel_event(building, room, date, time_block, notes=""):
+def cancel_event(building, room, date, start_time, end_time, notes=""):
     """Mark an event as cancelled in the room's schedule."""
-    start_time, end_time = parse_time_block(time_block)
-    if not start_time or not end_time:
+    if not all([building, room, date, start_time, end_time]):
         return False
     
     base_message = "User reported event as cancelled."
@@ -162,10 +158,9 @@ def cancel_event(building, room, date, time_block, notes=""):
     
     return result.modified_count > 0
 
-def uncancel_event(building, room, date, time_block, notes=""):
+def uncancel_event(building, room, date, start_time, end_time, notes=""):
     """Mark a cancelled event as scheduled again."""
-    start_time, end_time = parse_time_block(time_block)
-    if not start_time or not end_time:
+    if not all([building, room, date, start_time, end_time]):
         return False
     
     base_message = "User Confirmed."
@@ -243,8 +238,8 @@ def find_available_slots(building, room, date, start_time="00:00", end_time="23:
             slot_end = event_start
             if slot_start < slot_end:
                 available_slots.append((
-                    f"{slot_start // 60:02d}:{slot_start % 60:02d}",
-                    f"{slot_end // 60:02d}:{slot_end % 60:02d}"
+                    to_time_str(slot_start),
+                    to_time_str(slot_end)
                 ))
 
         # Move the current time to the end of this event
@@ -253,8 +248,8 @@ def find_available_slots(building, room, date, start_time="00:00", end_time="23:
     # Check for a gap after the last event
     if current_time < end_minutes:
         available_slots.append((
-            f"{current_time // 60:02d}:{current_time % 60:02d}",
-            f"{end_minutes // 60:02d}:{end_minutes % 60:02d}"
+            to_time_str(current_time),
+            to_time_str(end_minutes)
         ))
 
     return available_slots
@@ -307,3 +302,12 @@ def get_rooms_with_sufficient_gap(building, date, start_time, end_time, min_dura
             free_rooms.append(room_data)
     
     return free_rooms
+
+
+if __name__ == "__main__":
+    # Example usage
+    initialize_db()
+    print(get_rooms_by_building())
+    print(get_next_availability_on_date("SCI", "3.220", "2025-04-14"))
+    print(get_rooms_with_sufficient_gap("SCI", "2025-04-14", "10:00", "12:00", 30))
+    close_connection()
