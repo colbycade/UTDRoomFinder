@@ -36,6 +36,12 @@ Follow these steps to set up and run the application:
      pip install -r requirements.txt
      ```
 
+6. **Authenticate MongoDB**
+   - Store the URI with your user and password as an environemnt variable:
+     ```
+     export MONGODB_URI="your_mongodb_uri"
+     ```
+
 6. **Run the Application:**
    - Start the Flask development server:
      ```
