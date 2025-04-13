@@ -51,15 +51,26 @@ async function loadSchedule() {
     });
 }
 
-// Function to change the date by a given number of days and reload the schedule
+// Function to change the date to the next or previous weekday
 function changeDate(days) {
     const dateInput = document.getElementById('schedule-date');
-    const currentDate = new Date(dateInput.value);
+    const [year, month, day] = dateInput.value.split('-');
+    const currentDate = new Date(year, month - 1, day); // Month is 0-indexed
+  
+    // Calculate the new date
     currentDate.setDate(currentDate.getDate() + days);
+  
+    // Skip weekends (Saturday: 6, Sunday: 0)
+    if (currentDate.getDay() === 6) { // Skip to Monday if next day is Saturday
+      currentDate.setDate(currentDate.getDate() + (days > 0 ? 2 : -1)); 
+    } else if (currentDate.getDay() === 0) { // Go back to Friday if previous day is Sunday
+      currentDate.setDate(currentDate.getDate() + (days > 0 ? 1 : -2)); 
+    }
+  
     const newDate = currentDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
     dateInput.value = newDate;
     loadSchedule();
-}
+  }
 
 function showReportDialog(button, mode = 'report') {
     // Get DOM elements
