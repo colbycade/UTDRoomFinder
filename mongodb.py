@@ -1,14 +1,19 @@
 from pymongo.mongo_client import MongoClient
 import certifi
 import os
+from dotenv import load_dotenv
 from datetime import time
 
 SEMESTER_COLLECTION = "2025_Spring"
 DATABASE_NAME = "database"
 
+# Load environment variables from .env file
+load_dotenv()
+
 # Connection Functions
 def get_mongo_client():
     # Store your MongoDB URI in an environment variable by running `export MONGODB_URI="your_mongodb_uri"` before running the app or script
+    # Alternatively, create a .env file in the root directory of this project and add `MONGODB_URI="your_mongodb_uri"` to it
     uri = os.environ.get("MONGODB_URI")
     if not uri:
         raise ValueError("MONGODB_URI environment variable is not set")
