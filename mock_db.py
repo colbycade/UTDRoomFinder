@@ -107,11 +107,10 @@ mock_rooms = [
     }
 ]
 
-# Functions to interact with the mock database
-def get_all_rooms():
-    """Return all rooms in the database."""
-    return mock_rooms
+def initialize_db():
+    pass # Nothing to do for mock db
 
+# Functions to interact with the mock database
 def get_room(building, room):
     """Return a specific room by building and room number."""
     return next((r for r in mock_rooms if r['room'] == room and r['building'] == building), None)

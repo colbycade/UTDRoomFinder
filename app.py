@@ -1,8 +1,16 @@
 from flask import Flask, render_template, request, jsonify, url_for
-from mongodb import get_all_rooms, get_room, get_buildings, get_rooms_by_building, add_event, remove_user_event, cancel_event, uncancel_event, get_rooms_with_sufficient_gap, get_next_availability_on_date, to_minutes
+from mongodb import initialize_db, get_room, get_buildings, get_rooms_by_building, add_event, remove_user_event, cancel_event, uncancel_event, get_rooms_with_sufficient_gap, get_next_availability_on_date, to_minutes
 from datetime import datetime
 
 app = Flask(__name__)
+
+# Initailize Database
+try:
+    initialize_db()
+except Exception as e:
+    print(f"Database initialization failed: {e}")
+    raise
+    
 
 # Home page with search form
 @app.route('/')
@@ -57,9 +65,7 @@ def search_results():
         try:
             start_minutes = to_minutes(start_time)
             end_minutes = to_minutes(end_time)
-            print(f"Validating times: start_time={start_time} ({start_minutes} minutes), end_time={end_time} ({end_minutes} minutes)")  # Debugging
             if start_minutes >= end_minutes:
-                print("Validation failed: Start time is not before end time")  # Debugging
                 return render_template('results.html', rooms=[], criteria={
                     "building": building,
                     "room": room,
