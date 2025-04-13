@@ -1,3 +1,6 @@
+from datetime import datetime, timedelta
+import random
+
 # Simulated database for UTD Room Finder
 
 # Schema:
@@ -5,7 +8,7 @@
 #   - room (str): Room number (e.g., "2.102")
 #   - building (str): Building code (e.g., "ECSS")
 #   - schedule (dict): Mapping of dates to list of time blocks
-#     - Date (str): Format "YYYY-MM-DD" (e.g., "2025-03-24")
+#     - Date (str): Format "YYYY-MM-DD" (e.g., "2025-04-24")
 #     - Time Block (dict): Represents a scheduled event
 #       - start_time (str): Start time in 24-hour format (e.g., "09:00")
 #       - end_time (str): End time in 24-hour format (e.g., "11:00")
@@ -13,102 +16,71 @@
 #       - event_title (str): Event name (e.g., "ENGL 1301")
 #       - notes (str): Additional notes about the event or cancellation
 
-mock_rooms = [
-    {
-        "room": "2.102",
-        "building": "ECSS",
-        "schedule": {
-            "2025-03-24": [
-                {"start_time": "09:00", "end_time": "11:00", "status": "Scheduled", "event_title": "CS 1337", "notes": ""},
-                {"start_time": "12:00", "end_time": "13:00", "status": "User Reported", "event_title": "Study Group", "notes": "Group project meeting for CS 1337"}
-            ],
-            "2025-03-25": [
-                {"start_time": "10:00", "end_time": "12:00", "status": "Scheduled", "event_title": "PHYS 2125", "notes": ""}
-            ],
-            "2025-03-26": [
-                {"start_time": "09:00", "end_time": "10:00", "status": "Cancelled", "event_title": "CS 1337", "notes": "Professor out sick"},
-                {"start_time": "14:00", "end_time": "16:00", "status": "Scheduled", "event_title": "MATH 2417", "notes": ""}
-            ],
-            "2025-03-27": [
-                {"start_time": "10:00", "end_time": "12:00", "status": "Scheduled", "event_title": "PHYS 2125", "notes": ""}
-            ]
-        }
-    },
-    {
-        "room": "2.301",
-        "building": "ENG",
-        "schedule": {
-            "2025-03-09": [
-                {"start_time": "09:00", "end_time": "11:00", "status": "Scheduled", "event_title": "ENGL 1301", "notes": ""}
-            ],
-            "2025-03-24": [
-                {"start_time": "09:00", "end_time": "11:00", "status": "Scheduled", "event_title": "ENGL 1301", "notes": ""},
-                {"start_time": "11:30", "end_time": "12:30", "status": "User Reported", "event_title": "Peer Review Session", "notes": "Reviewing essays for ENGL 1301"},
-                {"start_time": "13:30", "end_time": "14:30", "status": "Cancelled", "event_title": "PHYS 2123", "notes": "Lab equipment failure"}
-            ],
-            "2025-03-25": [
-                {"start_time": "09:00", "end_time": "11:00", "status": "Scheduled", "event_title": "ENGL 1301", "notes": ""}
-            ],
-            "2025-03-26": []
-        }
-    },
-    {
-        "room": "1.118",
-        "building": "JSOM",
-        "schedule": {
-            "2025-03-09": [
-                {"start_time": "10:00", "end_time": "12:00", "status": "Scheduled", "event_title": "BA 1310", "notes": ""}
-            ],
-            "2025-03-24": [
-                {"start_time": "10:00", "end_time": "12:00", "status": "Scheduled", "event_title": "BA 1310", "notes": ""}
-            ],
-            "2025-03-25": [
-                {"start_time": "14:00", "end_time": "15:30", "status": "User Reported", "event_title": "Team Meeting", "notes": "Discussing BA 1310 group presentation"}
-            ],
-            "2025-03-26": [
-                {"start_time": "13:00", "end_time": "14:00", "status": "Scheduled", "event_title": "ECON 2301", "notes": ""}
-            ]
-        }
-    },
-    {
-        "room": "2.901",
-        "building": "JSOM",
-        "schedule": {
-            "2025-03-09": [
-                {"start_time": "15:00", "end_time": "17:00", "status": "Scheduled", "event_title": "MKT 3300", "notes": ""}
-            ],
-            "2025-03-24": [
-                {"start_time": "15:00", "end_time": "17:00", "status": "Cancelled", "event_title": "MKT 3300", "notes": "Guest speaker unavailable"}
-            ],
-            "2025-03-25": [
-                {"start_time": "09:00", "end_time": "10:00", "status": "Scheduled", "event_title": "FIN 3320", "notes": ""}
-            ],
-            "2025-03-26": []
-        }
-    },
-    {
-        "room": "4.208",
-        "building": "GR",
-        "schedule": {
-            "2025-03-09": [
-                {"start_time": "08:00", "end_time": "18:00", "status": "Scheduled", "event_title": "HIST 1301", "notes": ""}
-            ],
-            "2025-03-24": [
-                {"start_time": "08:00", "end_time": "18:00", "status": "Scheduled", "event_title": "HIST 1301", "notes": ""}
-            ],
-            "2025-03-25": [
-                {"start_time": "10:00", "end_time": "14:00", "status": "Cancelled", "event_title": "GOVT 2305", "notes": "Class moved online"},
-                {"start_time": "15:00", "end_time": "16:00", "status": "User Reported", "event_title": "Study Session", "notes": "Preparing for GOVT 2305 exam"}
-            ],
-            "2025-03-26": [
-                {"start_time": "11:00", "end_time": "13:00", "status": "Scheduled", "event_title": "PSY 2301", "notes": ""}
-            ]
-        }
-    }
-]
+# Generate a list of dates for the next work week (Monday to Friday) to use in the mock data
+def get_next_work_week():
+    today = datetime.now()
+    # Calculate days until next Monday (0 is Monday, 6 is Sunday)
+    days_until_monday = (7 - today.weekday()) % 7
+    # Get next Monday's date
+    next_monday = today + timedelta(days=days_until_monday)
+    # Generate dates for Monday to Friday
+    work_week = [next_monday + timedelta(days=i) for i in range(5)]
+    # Return formatted dates (e.g., '2025-04-14')
+    return [date.strftime('%Y-%m-%d') for date in work_week]
+
+
+def generate_mock_events():
+    # Sample event templates to choose from
+    event_templates = [
+        {"start_time": "08:00", "end_time": "10:00", "status": "Scheduled", "event_title": "HIST 1301", "notes": "Seminar"},
+        {"start_time": "09:00", "end_time": "11:00", "status": "Scheduled", "event_title": "CS 1337", "notes": "Lecture"},
+        {"start_time": "10:00", "end_time": "12:00", "status": "Scheduled", "event_title": "PHYS 2125", "notes": "Lab"},
+        {"start_time": "11:30", "end_time": "12:30", "status": "User Reported", "event_title": "Peer Review", "notes": "Essay review"},
+        {"start_time": "12:00", "end_time": "13:00", "status": "User Reported", "event_title": "Study Group", "notes": "Group project"},
+        {"start_time": "13:00", "end_time": "14:00", "status": "Scheduled", "event_title": "ECON 2301", "notes": "Discussion"},
+        {"start_time": "14:00", "end_time": "16:00", "status": "Scheduled", "event_title": "MATH 2417", "notes": "Tutorial"},
+        {"start_time": "15:00", "end_time": "17:00", "status": "Cancelled", "event_title": "MKT 3300", "notes": "Guest speaker unavailable"}
+    ]
+    
+    # Randomly select events to simulate realistic schedules
+    num_events = random.randint(2, 5)
+    return random.sample(event_templates, num_events)
+
+def create_mock_rooms():
+    # Define rooms and buildings
+    rooms = [
+        {"room": "2.102", "building": "ECSS"},
+        {"room": "2.301", "building": "ENG"},
+        {"room": "1.118", "building": "JSOM"},
+        {"room": "2.901", "building": "JSOM"},
+        {"room": "4.208", "building": "GR"}
+    ]
+    
+    # Get next work week's dates
+    work_week_dates = get_next_work_week()
+    
+    # Generate mock data
+    mock_rooms = []
+    for room_info in rooms:
+        schedule = {}
+        # Assign random events to each day
+        for date in work_week_dates:
+            schedule[date] = generate_mock_events()
+        
+        # Add room data
+        mock_rooms.append({
+            "room": room_info["room"],
+            "building": room_info["building"],
+            "schedule": schedule
+        })
+    
+    return mock_rooms
 
 def initialize_db():
-    pass # Nothing to do for mock db
+    """Initialize the mock database with room data."""
+    global mock_rooms
+    mock_rooms = create_mock_rooms()
+    return True
 
 # Functions to interact with the mock database
 def get_room(building, room):
@@ -183,7 +155,7 @@ def add_event(building, room, date, start_time, end_time, event_title, notes="",
     room_data['schedule'][date].sort(key=lambda x: x['start_time'])
     return True
 
-def remove_user_event(building, room, date, time_block):
+def remove_user_event(building, room, date, start_time, end_time):
     """Remove a user-reported event from the room's schedule for the specified date and time block."""
     room_data = get_room(building, room)
     if not room_data or date not in room_data['schedule']:
@@ -191,17 +163,17 @@ def remove_user_event(building, room, date, time_block):
     schedule = room_data['schedule'][date]
     room_data['schedule'][date] = [
         slot for slot in schedule
-        if not (slot['start_time'] + ' - ' + slot['end_time'] == time_block and slot['status'] == "User Reported")
+        if not (slot['start_time'] == start_time and slot['end_time'] == end_time and slot['status'] == "User Reported")
     ]
     return True
 
-def cancel_event(building, room, date, time_block, notes=""):
+def cancel_event(building, room, date, start_time, end_time, notes=""):
     """Mark an event as cancelled in the room's schedule for the specified date and time block."""
     room_data = get_room(building, room)
     if not room_data or date not in room_data['schedule']:
         return False
     for slot in room_data['schedule'][date]:
-        if slot['start_time'] + ' - ' + slot['end_time'] == time_block and slot['status'] == "Scheduled":
+        if slot['start_time'] == start_time and slot['end_time'] == end_time and slot['status'] == "Scheduled":
             slot['status'] = "Cancelled"
             # Prepend standard message and append explanation if provided
             base_message = "User reported event as cancelled."
@@ -209,13 +181,13 @@ def cancel_event(building, room, date, time_block, notes=""):
             return True
     return False
 
-def uncancel_event(building, room, date, time_block, notes=""):
+def uncancel_event(building, room, date, start_time, end_time, notes=""):
     """Mark a cancelled event as scheduled again in the room's schedule for the specified date and time block."""
     room_data = get_room(building, room)
     if not room_data or date not in room_data['schedule']:
         return False
     for slot in room_data['schedule'][date]:
-        if slot['start_time'] + ' - ' + slot['end_time'] == time_block and slot['status'] == "Cancelled":
+        if slot['start_time'] == start_time and slot['end_time'] == end_time and slot['status'] == "Cancelled":
             slot['status'] = "Scheduled"
             # Overwrite notes with uncancel message
             base_message = "User Confirmed."
