@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify, url_for
-from mock_db import get_all_rooms, get_room, get_buildings, get_rooms_by_building, add_event, remove_user_event, cancel_event, uncancel_event, get_rooms_with_sufficient_gap, get_next_availability_on_date, to_minutes
+from mongodb import get_all_rooms, get_room, get_buildings, get_rooms_by_building, add_event, remove_user_event, cancel_event, uncancel_event, get_rooms_with_sufficient_gap, get_next_availability_on_date, to_minutes
 from datetime import datetime
 
 app = Flask(__name__)
