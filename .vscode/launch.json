@@ -34,6 +34,20 @@
             ],
             "jinja": true,
             "autoStartBrowser": false
+        },
+        {
+            "name": "Pytest (Unit Tests)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": [
+                "3_basic_function_testing"
+            ],
+            "env": {
+                "DB_TYPE": "mock",
+                "FLASK_ENV": "testing"
+            },
+            "console": "integratedTerminal",
         }
     ]
 }
