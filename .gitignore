@@ -406,3 +406,6 @@ __pycache__/
 .DS_Store
 .venv
 .env
+
+# Pytest
+.pytest_cache/
