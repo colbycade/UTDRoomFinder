@@ -37,24 +37,31 @@ EVENT_START_TIME = "10:00"
 EVENT_END_TIME = "12:00"
 EVENT_TITLE = "Test Event"
 NOTES = "Test Notes"
-MOCK_ROOM_DATA = [
+MOCK_EMPTY_SCHEDULE = [
     {
         "building": BUILDING,
         "room": ROOM,
-        "schedule": {
-            DATE: [
-                {
-                    "start_time": EVENT_START_TIME,
-                    "end_time": EVENT_END_TIME,
-                    "status": "Scheduled",
-                    "event_title": EVENT_TITLE,
-                    "notes": NOTES
-                }
-            ]
-        }
+        "schedule": {}
     }
 ]
-
+def get_mock_room_data(status="Scheduled"):
+    return [
+        {
+            "building": BUILDING,
+            "room": ROOM,
+            "schedule": {
+                DATE: [
+                    {
+                        "start_time": EVENT_START_TIME,
+                        "end_time": EVENT_END_TIME,
+                        "status": status,
+                        "event_title": EVENT_TITLE,
+                        "notes": NOTES
+                    }
+                ]
+            }
+        }
+    ]
 
 # Unit Tests for app.py
 
@@ -87,7 +94,7 @@ def test_results_page_loads(client):
 
 # Test search with specific room
 def test_search_room(client):
-    mock_db.rooms = MOCK_ROOM_DATA
+    mock_db.rooms = get_mock_room_data()
     form_data = {
         'building': BUILDING,
         'room': ROOM,
@@ -104,7 +111,7 @@ def test_search_room(client):
 
 # Test search with specific time range and duration
 def test_search_time(client):
-    mock_db.rooms = MOCK_ROOM_DATA
+    mock_db.rooms = get_mock_room_data()
     form_data = {
         'building': BUILDING,
         'room': ROOM,
@@ -118,3 +125,95 @@ def test_search_time(client):
     assert SEARCH_END_TIME.encode('utf-8') in response.data
     assert MIN_DURATION.encode('utf-8') in response.data
     assert b"View Schedule" in response.data # room appears in results
+
+# Testing POST /api/report
+# user reports an event
+def test_add_event(client):
+    mock_db.rooms = MOCK_EMPTY_SCHEDULE
+    form_data = {
+        'building': BUILDING,
+        'room': ROOM,
+        'date': DATE,
+        'start_time': SEARCH_START_TIME,
+        'end_time': SEARCH_END_TIME,
+        'report_type': 'add',
+        'event_title': EVENT_TITLE,
+        'notes': NOTES
+    }
+    response = client.post('/api/report', data=form_data)
+    assert response.status_code == 200
+    assert response.content_type == 'application/json'
+    json_data = response.get_json()
+    assert json_data['building'] == BUILDING
+    assert json_data['room'] == ROOM
+    assert json_data['start_time'] == SEARCH_START_TIME
+    assert json_data['end_time'] == SEARCH_END_TIME
+    assert json_data['event_title'] == EVENT_TITLE
+    assert json_data['notes'] == NOTES
+
+# user removes a user reported event
+def test_remove_event(client):
+    mock_db.rooms = get_mock_room_data("User Reported")
+    form_data = {
+        'building': BUILDING,
+        'room': ROOM,
+        'date': DATE,
+        'start_time': EVENT_START_TIME,
+        'end_time': EVENT_END_TIME,
+        'report_type': 'remove'
+    }
+
+    response = client.post('/api/report', data=form_data)
+    assert response.status_code == 200
+    assert response.content_type == 'application/json'
+    json_data = response.get_json()
+    assert json_data['building'] == BUILDING
+    assert json_data['room'] == ROOM
+    assert json_data['start_time'] == EVENT_START_TIME
+    assert json_data['end_time'] == EVENT_END_TIME
+
+# user marks a scheduled event as cancelled
+def test_cancel_event(client):
+    mock_db.rooms = get_mock_room_data()
+    form_data = {
+        'building': BUILDING,
+        'room': ROOM,
+        'date': DATE,
+        'start_time': EVENT_START_TIME,
+        'end_time': EVENT_END_TIME,
+        'report_type': 'cancel',
+        'notes': NOTES
+    }
+    response = client.post('/api/report', data=form_data)
+    assert response.status_code == 200
+    assert response.content_type == 'application/json'
+    json_data = response.get_json()
+    assert json_data['building'] == BUILDING
+    assert json_data['room'] == ROOM
+    assert json_data['start_time'] == EVENT_START_TIME
+    assert json_data['end_time'] == EVENT_END_TIME
+    assert json_data['notes'] == NOTES
+
+# user marks a cancelled event as scheduled 
+def test_confirm_event(client):
+    mock_db.rooms = get_mock_room_data("Cancelled")
+    form_data = {
+        'building': BUILDING,
+        'room': ROOM,
+        'date': DATE,
+        'start_time': EVENT_START_TIME,
+        'end_time': EVENT_END_TIME,
+        'report_type': 'confirm',
+        'notes': NOTES
+    }
+    response = client.post('/api/report', data=form_data)
+    assert response.status_code == 200
+    assert response.content_type == 'application/json'
+    json_data = response.get_json()
+    assert json_data['building'] == BUILDING
+    assert json_data['room'] == ROOM
+    assert json_data['start_time'] == EVENT_START_TIME
+    assert json_data['end_time'] == EVENT_END_TIME
+    assert json_data['notes'] == NOTES
+
+

@@ -156,7 +156,7 @@ function showReportDialog(button, mode = 'report') {
             config.message = 'Report as cancelled:';
             config.showNotes = true;
             config.confirmText = 'Report Cancelled';
-            config.reportType = 'cancelled';
+            config.reportType = 'cancel';
         } else if (status === 'User Reported') {
             config.title = 'Is this user-reported event not happening?';
             config.message = 'Confirm event removal:';
@@ -167,7 +167,7 @@ function showReportDialog(button, mode = 'report') {
             config.message = 'Is this event still happening?';
             config.showNotes = true;
             config.confirmText = 'Confirm Event';
-            config.reportType = 'uncancel';
+            config.reportType = 'confirm';
         }
     }
 

@@ -219,7 +219,7 @@ def report_error():
             "end_time": end_time
             })
 
-    elif report_type == "cancelled":
+    elif report_type == "cancel":
         success = db.cancel_event(building, room, date, start_time, end_time, notes=notes)
         if not success:
             return jsonify({"error": "Room or event not found"}), 404
@@ -232,7 +232,7 @@ def report_error():
             "notes": notes
             })
 
-    elif report_type == "uncancel":
+    elif report_type == "confirm":
         success = db.uncancel_event(building, room, date, start_time, end_time, notes=notes)
         if not success:
             return jsonify({"error": "Room or event not found"}), 404
