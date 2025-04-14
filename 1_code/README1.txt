@@ -41,10 +41,16 @@ Follow these steps to set up and run the application:
      ```
      export MONGODB_URI="your_mongodb_uri"
      ```
+   - Alternatively, create a .env file:
+    ```
+    MONGODB_URI="your_mongodb_uri"
+    ```
 
-6. **Run the Application:**
+7. **Run the Application:**
+   - Note: You must first navigate to the 1_code directory with `cd 1_code`, or run `export FLASK_APP=1_code/app.py`. 
    - Start the Flask development server:
      ```
      flask run
      ```
    - Open your browser and go to `http://127.0.0.1:5000`.
+   
