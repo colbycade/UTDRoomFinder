@@ -126,7 +126,50 @@ def test_search_time(client):
     assert MIN_DURATION.encode('utf-8') in response.data
     assert b"View Schedule" in response.data # room appears in results
 
-# Testing POST /api/report
+# Test search with invalid time range (start >= end)
+def test_search_invalid_time(client):
+    form_data = {
+        'building': "Any Building",
+        'room': "Any Room",
+        'date': DATE,
+        'start_time': "15:00", # After end_time
+        'end_time': "14:00",
+        'duration': MIN_DURATION
+    }
+    response = client.post('/results', data=form_data)
+    assert response.status_code == 200 # Still loads the results template
+    assert b"Start time must be before end time" in response.data
+
+def test_results_room_not_found(client):
+    mock_db.rooms = [] # Ensure DB is empty or doesn't contain the room
+    form_data = {
+        'building': BUILDING,
+        'room': "NonExistentRoom",
+        'date': DATE,
+        'start_time': '',
+        'end_time': '',
+        'duration': ''
+    }
+    response = client.post('/results', data=form_data)
+    assert response.status_code == 200
+    assert b"Room not found" in response.data
+
+# Test GET /api/schedule/<building>/<room>
+def test_get_schedule(client):
+    mock_db.rooms = get_mock_room_data()
+    response = client.get(f'/api/schedule/{BUILDING}/{ROOM}')
+    assert response.status_code == 200
+    assert response.content_type == 'application/json'
+    json_data = response.get_json()
+    assert DATE in json_data
+    assert len(json_data[DATE]) == 1
+    assert json_data[DATE][0]['start_time'] == EVENT_START_TIME
+    assert json_data[DATE][0]['end_time'] == EVENT_END_TIME
+    assert json_data[DATE][0]['status'] == "Scheduled"
+    assert json_data[DATE][0]['event_title'] == EVENT_TITLE
+    assert json_data[DATE][0]['notes'] == NOTES
+
+# Test POST /api/report
 # user reports an event
 def test_add_event(client):
     mock_db.rooms = MOCK_EMPTY_SCHEDULE
@@ -215,5 +258,3 @@ def test_confirm_event(client):
     assert json_data['start_time'] == EVENT_START_TIME
     assert json_data['end_time'] == EVENT_END_TIME
     assert json_data['notes'] == NOTES
-
-
