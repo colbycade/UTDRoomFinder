@@ -186,14 +186,12 @@ def schedule(building, room):
 def report_error():
     room = request.form.get('room')
     building = request.form.get('building')
+    date = request.form.get('date', datetime.now().strftime('%Y-%m-%d'))
     start_time = request.form.get('start_time')
     end_time = request.form.get('end_time')
     report_type = request.form.get('report_type')
     event_title = request.form.get('event_title', '')
     notes = request.form.get('notes', '')
-    date = request.form.get('date', datetime.now().strftime('%Y-%m-%d'))
-
-    print(f"Received report: {report_type} for {building} {room} on {date} from {start_time} to {end_time}")  # Debugging
 
     if report_type == "add":
         result = db.add_event(building, room, date, start_time, end_time, event_title, notes=notes)
