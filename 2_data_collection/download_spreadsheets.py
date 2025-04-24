@@ -75,7 +75,6 @@ while True:
     try:
         WebDriverWait(driver, maximum_wait_time).until(EC.element_to_be_clickable((By.XPATH, "//button[@aria-controls='c_export']"))).click()
         WebDriverWait(driver, maximum_wait_time).until(EC.element_to_be_clickable((By.LINK_TEXT, "Download Excel File"))).click()
-        print(f"index {n} was downloaded")
         time.sleep(1.00)
         folder = "raw_classroom_information"
         downloads_path = str(Path.home()/"Downloads")

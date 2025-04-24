@@ -20,10 +20,7 @@ def read_spreadsheet(filepath):
         days = class_info.get('days')
         class_type = class_info.get('activity_type')
         
-        if location == "ONLINE" or class_type != "Lecture":    
-            continue
-
-        elif pd.isna(location) or pd.isna(times):
+        if location == "ONLINE" or pd.isna(location) or pd.isna(times):    
             continue
         
         # create new entry into dictionary for new rooms
@@ -37,8 +34,9 @@ def read_spreadsheet(filepath):
 
     return rooms
 
+user = os.environ.get("mongodb_user")
 password = os.environ.get("mongodb_pwd")
-connection_string = ""
+connection_string = f"mongodb+srv://{user}:{password}@classroominformation.kbuk2.mongodb.net/?appName=ClassroomInformation"
 client = MongoClient(connection_string)
 
 # ptr to classroom information folder in database directory
@@ -54,7 +52,6 @@ downloads_path = "raw_classroom_information"
 for file_name in os.listdir(downloads_path):
     if file_name.endswith("xlsx"):
         room_information = read_spreadsheet(os.path.join(downloads_path, file_name))
-        files_read += 1
 
         # going through each room's schedule and adding class times into the database
         for room_location, room_schedule in room_information.items():
@@ -71,8 +68,7 @@ for file_name in os.listdir(downloads_path):
                         update_data[field] = existing_times + room_schedule.days[i].times
 
                 class_information_collection.update_one({"room_location": room_location}, {"$set": update_data})
-
-            # uploading an entiirely new document
+            # uploading an entirely new document
             else:
                 new_document = { "room_location": room_location } # data to send to database
 
@@ -82,5 +78,4 @@ for file_name in os.listdir(downloads_path):
                         new_document[field] = room_schedule.days[i].times
 
                 class_information_collection.insert_one(new_document)
-        
         room_information = {}
