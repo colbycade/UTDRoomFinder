@@ -6,7 +6,6 @@ from pathlib import Path
 from dotenv import load_dotenv, find_dotenv
 
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.ui import WebDriverWait
@@ -35,9 +34,7 @@ def login(driver):
 load_dotenv(find_dotenv())
 
 url = "https://coursebook.utdallas.edu/"
-service = Service(executable_path = "chromedriver")
-
-driver = webdriver.Chrome(service = service)
+driver = webdriver.Chrome()
 driver.get(url)
 
 login(driver)
