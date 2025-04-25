@@ -28,3 +28,9 @@ Because this is ran for a specific semester, there is some configuration needed 
 - The first and last day of class for the current semester must be placed in the `CLASSES_START` and `CLASSES_END` variables.
 - Any days where there will be no school between these two dates should be indicated in the `HOLIDAYS` variable.
 
+How to get room location links
+
+The final script scrapes the link to see each room on the map and adds them to the semester data.
+Again, you will need to set your MongoDB username and password or set the corresponding environment variables.
+Also, set the "collection" variable to the name of the collection with the semester data.
+
