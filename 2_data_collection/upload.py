@@ -43,6 +43,18 @@ client = MongoClient(connection_string, tlsCAFile=certifi.where())
 # ptr to classroom information folder in database directory
 class_information_collection = client.database.class_information
 
+# Check if the collection already exists and if so ask for confirmation to overwrite
+collection_exists = class_information_collection.count_documents({}) > 0
+
+# Ask for confirmation only once if collection exists
+proceed_with_update = True
+if collection_exists:
+    confirm = input(f"Collection 'class_information' already exists in database. Proceed with updates? (y/n): ").lower()
+    proceed_with_update = confirm == 'y' or confirm == 'yes'
+if not proceed_with_update:
+    print("Exiting without making any changes.")
+    exit()
+
 # possible fields of document to be send into database
 fields = ["monday_times", "tuesday_times", "wednesday_times", "thursday_times", "friday_times", "saturday_times"]
 
