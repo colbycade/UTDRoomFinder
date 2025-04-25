@@ -37,14 +37,18 @@ Follow these steps to set up and run the application:
      ```
 
 6. **Authenticate MongoDB**
-   - Store the URI with your user and password as an environemnt variable:
+   - If you want to use the production database, store your username and password as environment variables:
      ```
-     export MONGODB_URI="your_mongodb_uri"
+     export mongodb_user="your_username"
+     export mongodb_pwd="your_password"
      ```
-   - Alternatively, create a .env file:
+   - Alternatively, create a .env file in the root directory of the project:
     ```
-    MONGODB_URI="your_mongodb_uri"
+    mongodb_user="your_username"
+    mongodb_pwd="your_password"
     ```
+  - The default database is in-memory. Run `export DB_TYPE="mongo"` to use the production database.
+    - There are also VSCode launch configurations for using either database
 
 7. **Run the Application:**
    - Note: You must first navigate to the 1_code directory with `cd 1_code`, or run `export FLASK_APP=1_code/app.py`. 

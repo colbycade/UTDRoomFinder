@@ -26,13 +26,14 @@ class MongoDatabase(DatabaseInterface):
 
     def _get_mongo_client(self):
         """Get MongoDB client. 
-           Store your MongoDB URI in an environment variable by running `export MONGODB_URI="your_mongodb_uri"` before running the app or script.
-           Alternatively, create a .env file in the root directory of this project and add `MONGODB_URI="your_mongodb_uri"` to it
+           Store your MongoDB username and password as environment variables named 'mongodb_user' and 'mongodb_pwd' respectively.
         """
-        uri = os.environ.get("MONGODB_URI")
-        if not uri:
-            raise ValueError("MONGODB_URI environment variable is not set")
-        client = MongoClient(uri, tlsCAFile=certifi.where())
+        user = os.environ.get("mongodb_user")
+        password = os.environ.get("mongodb_pwd")
+        connection_string = f"mongodb+srv://{user}:{password}@classroominformation.kbuk2.mongodb.net/?appName=ClassroomInformation"
+        if not connection_string:
+            raise ValueError("conn_string environment variable is not set")
+        client = MongoClient(connection_string, tlsCAFile=certifi.where())
         return client
 
     def _get_db(self, database_name=DATABASE_NAME):

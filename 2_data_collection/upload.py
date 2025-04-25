@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import certifi
 from pymongo import MongoClient
 from  room_schedule import Schedule
 from dotenv import load_dotenv, find_dotenv
@@ -37,7 +38,7 @@ def read_spreadsheet(filepath):
 user = os.environ.get("mongodb_user")
 password = os.environ.get("mongodb_pwd")
 connection_string = f"mongodb+srv://{user}:{password}@classroominformation.kbuk2.mongodb.net/?appName=ClassroomInformation"
-client = MongoClient(connection_string)
+client = MongoClient(connection_string, tlsCAFile=certifi.where())
 
 # ptr to classroom information folder in database directory
 class_information_collection = client.database.class_information
