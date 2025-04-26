@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 import certifi
-from pymongo import MongoClient
+from pymongo import MongoClient, UpdateOne
 from  room_schedule import Schedule
 from dotenv import load_dotenv, find_dotenv
 
@@ -41,7 +41,7 @@ connection_string = f"mongodb+srv://{user}:{password}@classroominformation.kbuk2
 client = MongoClient(connection_string, tlsCAFile=certifi.where())
 
 # ptr to classroom information folder in database directory
-class_information_collection = client.database.class_information
+class_information_collection = client.database.test
 
 # Check if the collection already exists and if so ask for confirmation to overwrite
 collection_exists = class_information_collection.count_documents({}) > 0
@@ -58,37 +58,34 @@ if not proceed_with_update:
 # possible fields of document to be send into database
 fields = ["monday_times", "tuesday_times", "wednesday_times", "thursday_times", "friday_times", "saturday_times"]
 
+# path to excel spreadsheets
+downloads_path = "raw_classroom_information"
+
 # dictionary that maps a rooms location to its weekly schedule
 room_information = {}
 
-downloads_path = "raw_classroom_information"
 for file_name in os.listdir(downloads_path):
-    if file_name.endswith("xlsx"):
-        room_information = read_spreadsheet(os.path.join(downloads_path, file_name))
+   if file_name.endswith("xlsx"):
+       room_information = read_spreadsheet(os.path.join(downloads_path, file_name))
+       bulk_operations = []
 
-        # going through each room's schedule and adding class times into the database
-        for room_location, room_schedule in room_information.items():
+       for room_location, room_schedule in room_information.items():
+           set_data = {}
 
-            # updating existing document in mongodb
-            existing_document = class_information_collection.find_one({"room_location": room_location})
-            if existing_document:
-                update_data = {}
+           for i, field in enumerate(fields):
+               if room_schedule.days[i].times:
+                   set_data[field] = room_schedule.days[i].times
 
-                # add old times with new times read from spreadsheet
-                for i, field in enumerate(fields):
-                    if room_schedule.days[i].times:
-                        existing_times = existing_document.get(field, [])
-                        update_data[field] = existing_times + room_schedule.days[i].times
+           if set_data:
+               bulk_operations.append(
+                   UpdateOne(
+                       {"room_location": room_location},
+                       {"$set": set_data},
+                       upsert=True
+                   )
+               )
 
-                class_information_collection.update_one({"room_location": room_location}, {"$set": update_data})
-            # uploading an entirely new document
-            else:
-                new_document = { "room_location": room_location } # data to send to database
+       if bulk_operations:
+           class_information_collection.bulk_write(bulk_operations)
 
-                # only add days with classes as parameters 
-                for i, field in enumerate(fields):
-                    if room_schedule.days[i].times:
-                        new_document[field] = room_schedule.days[i].times
-
-                class_information_collection.insert_one(new_document)
-        room_information = {}
+       room_information = {}
