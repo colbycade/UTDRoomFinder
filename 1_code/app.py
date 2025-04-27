@@ -90,7 +90,6 @@ def search_results():
                     "error": "Start time must be before end time"
                 })
         except ValueError as e:
-            print(f"Error parsing times: {e}")  # Debugging
             return render_template('results.html', rooms=[], criteria={
                 "building": building,
                 "room": room,
