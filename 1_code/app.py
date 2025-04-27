@@ -165,12 +165,12 @@ def get_schedule(building, room):
 # Schedule page
 @app.route('/schedule/<building>/<room>')
 def schedule(building, room):
-    today = datetime.now().strftime('%Y-%m-%d')
+    date = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
     # Ensure search_criteria is always provided
     search_criteria = {
         'building': request.args.get('building_search', building),
         'room': request.args.get('room_search', room),
-        'date': request.args.get('date', today),
+        'date': date,
         'start_time': request.args.get('start_time', ''),
         'end_time': request.args.get('end_time', ''),
         'duration': request.args.get('duration', '')
@@ -178,7 +178,7 @@ def schedule(building, room):
     return render_template('schedule.html', 
                          building=building, 
                          room=room, 
-                         today=today,
+                         today=date,
                          search_criteria=search_criteria)
 
 # Report event error
