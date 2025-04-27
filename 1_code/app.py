@@ -62,17 +62,19 @@ def search_results():
     end_time = request.form.get('end_time')
     duration = request.form.get('duration')
 
+    criteria = {
+        "building": building,
+        "room": room,
+        "date": date,
+        "start_time": start_time or "00:00",
+        "end_time": end_time or "23:59",
+        "duration": duration
+    }
+
     # Validate that a date is selected
     if not date:
-        return render_template('results.html', rooms=[], criteria={
-            "building": building,
-            "room": room,
-            "date": date,
-            "start_time": start_time or "00:00",
-            "end_time": end_time or "23:59",
-            "duration": duration,
-            "error": "Please select a date"
-        })
+        criteria["error"] = "Please select a date"
+        return render_template('results.html', rooms=[], criteria=criteria)
 
     # Validate start time is before end time if both are provided
     if start_time and end_time:
@@ -80,25 +82,11 @@ def search_results():
             start_minutes = to_minutes(start_time)
             end_minutes = to_minutes(end_time)
             if start_minutes >= end_minutes:
-                return render_template('results.html', rooms=[], criteria={
-                    "building": building,
-                    "room": room,
-                    "date": date,
-                    "start_time": start_time,
-                    "end_time": end_time,
-                    "duration": duration,
-                    "error": "Start time must be before end time"
-                })
+                criteria["error"] = "Start time must be before end time"
+                return render_template('results.html', rooms=[], criteria=criteria)
         except ValueError as e:
-            return render_template('results.html', rooms=[], criteria={
-                "building": building,
-                "room": room,
-                "date": date,
-                "start_time": start_time,
-                "end_time": end_time,
-                "duration": duration,
-                "error": "Invalid time format"
-            })
+            criteria["error"] = "Invalid time format"
+            return render_template('results.html', rooms=[], criteria=criteria)
     start_time = start_time or "00:00"
     end_time = end_time or "23:59"
 
@@ -109,15 +97,8 @@ def search_results():
     if building != "Any Building" and room != "Any Room Number":
         room_data = db.get_room(building, room)
         if not room_data:
-            return render_template('results.html', rooms=[], criteria={
-                "building": building,
-                "room": room,
-                "date": date,
-                "start_time": start_time,
-                "end_time": end_time,
-                "duration": duration,
-                "error": "Room not found"
-            })
+            criteria["error"] = "Room not found"
+            return render_template('results.html', rooms=[], criteria=criteria)
         # Filter rooms to only include the selected room
         rooms = [r for r in rooms if r['building'] == building and r['room'] == room]
 
@@ -139,14 +120,7 @@ def search_results():
         }
         rooms_with_availability.append(room_data)
 
-    return render_template('results.html', rooms=rooms_with_availability, criteria={
-        "building": building,
-        "room": room,
-        "date": date,
-        "start_time": start_time,
-        "end_time": end_time,
-        "duration": duration
-    })
+    return render_template('results.html', rooms=rooms_with_availability, criteria=criteria)
 
 # Campus Map page
 @app.route('/map')
