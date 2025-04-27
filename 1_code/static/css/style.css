@@ -218,6 +218,20 @@ button:hover {
     background-color: #ffe6cc;
 }
 
+.results-table a {
+    color: #ce5c15;
+    text-decoration: underline;
+}
+
+.results-table a:hover {
+    color: #b14705;
+    text-decoration: underline;
+}
+
+.results-table a:visited {
+    color: #ce5c15;
+}
+
 /* Schedule Page */
 .schedule-header {
     display: flex;

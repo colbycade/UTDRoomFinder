@@ -29,7 +29,13 @@
                 {% for room in rooms[:20] %}
                     <tr>
                         <td>{{ room.building }}</td>
-                        <td>{{ room.room }}</td>
+                        <td>
+                            {% if room.location %}
+                                <a href="{{ room.location }}" target="_blank">{{ room.room }}</a>
+                            {% else %}
+                                {{ room.room }}
+                            {% endif %}
+                        </td>
                         <td>{{ room.next_availability }}</td>
                         <td>
                             <button class="view-schedule-btn" onclick="window.location.href=`{{ url_for('schedule', building=room.building, room=room.room, building_search=criteria.building, room_search=criteria.room, date=criteria.date, start_time=criteria.start_time, end_time=criteria.end_time, duration=criteria.duration) }}`">
@@ -38,10 +44,10 @@
                         </td>
                     </tr>
                 {% endfor %}
-                {% if rooms|length > 20 %}
+                {% if rooms|length >= 20 %}
                 <tr>
                     <td colspan="4" style="text-align: center; color: red;">
-                        Showing 20 out of {{ rooms|length }} results. Please refine your search criteria.
+                        Showing first 20 search results. Please refine your search criteria.
                     </td>
                 </tr>
                 {% endif %}
