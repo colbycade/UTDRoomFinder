@@ -85,7 +85,13 @@
                     return false;
                 }
             }
-            return true;
+
+            // Validate minimum duration "Duration cannot exceed 24 hours (1440 minutes)"
+            const duration = parseInt(document.getElementById('duration').value, 10);
+            if (duration > 1440) {
+                alert('Duration must be between 1 and 1440 minutes (24 hours).');
+                return false;
+            }
         }
 
         // Initialize room dropdown and set default start time on page load
