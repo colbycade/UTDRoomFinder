@@ -58,8 +58,8 @@ def search_results():
     building = request.form.get('building')
     room = request.form.get('room')
     date = request.form.get('date')
-    start_time = request.form.get('start_time', "00:00")
-    end_time = request.form.get('end_time', "23:59")
+    start_time = request.form.get('start_time') or "00:00"
+    end_time = request.form.get('end_time') or "23:59"
     duration = request.form.get('duration')
 
     criteria = {
@@ -90,6 +90,7 @@ def search_results():
         room_data = {
             'building': room_item['building'],
             'room': room_item['room'],
+            'location': room_item['location'],
             'next_availability': next_slot if next_slot else "Not available today" # shouldn't happen
         }
         rooms_with_availability.append(room_data)
