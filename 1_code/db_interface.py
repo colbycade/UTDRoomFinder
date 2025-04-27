@@ -42,7 +42,7 @@ class DatabaseInterface(ABC):
         pass
 
     @abstractmethod
-    def get_rooms_with_sufficient_gap(self, building, date, duration):
+    def get_rooms_with_sufficient_gap(self, building, room, date, duration, limit):
         """Return rooms with at least one gap of minimum duration."""
         pass
 

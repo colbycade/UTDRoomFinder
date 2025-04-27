@@ -75,6 +75,7 @@
         function validateForm() {
             const startTime = document.getElementById('start-time').value;
             const endTime = document.getElementById('end-time').value;
+            const duration = parseInt(document.getElementById('duration').value, 10);
 
             // Only validate if both start and end times are provided
             if (startTime && endTime) {
@@ -87,11 +88,21 @@
             }
 
             // Validate minimum duration "Duration cannot exceed 24 hours (1440 minutes)"
-            const duration = parseInt(document.getElementById('duration').value, 10);
             if (duration > 1440) {
                 alert('Duration must be between 1 and 1440 minutes (24 hours).');
                 return false;
             }
+            // Validate minimum duration is possible given the start and/or end times
+            if (startTime || endTime) {
+                const start = startTime ? new Date(`1970-01-01T${startTime}:00`) : new Date(`1970-01-01T00:00:00`);
+                const end = endTime ? new Date(`1970-01-01T${endTime}:00`) : new Date(`1970-01-01T23:59:00`);
+                const diff = (end - start) / 60000; // Convert milliseconds to minutes
+                if (diff < duration) {
+                    alert('The selected time range is shorter than the minimum duration.');
+                    return false;
+                }
+            }
+            return true;
         }
 
         // Initialize room dropdown and set default start time on page load

@@ -264,7 +264,7 @@ class MongoDatabase(DatabaseInterface):
         
         return None
 
-    def has_sufficient_gap(self, building, room, date, start_time, end_time, min_duration):
+    def _has_sufficient_gap(self, building, room, date, start_time, end_time, min_duration):
         """Check if a room has a gap of sufficient duration."""
         available_slots = self._find_available_slots(building, room, date, start_time, end_time)
         min_duration = int(min_duration) if min_duration else 1
@@ -275,25 +275,26 @@ class MongoDatabase(DatabaseInterface):
                 return True
         return False
 
-    def get_rooms_with_sufficient_gap(self, building, date, start_time, end_time, min_duration):
+    def get_rooms_with_sufficient_gap(self, building, room, date, start_time, end_time, min_duration, limit=50):
         """Return rooms with at least one gap of minimum duration."""
         # Default times if not provided
         start_time = start_time or "00:00"
         end_time = end_time or "23:59"
         min_duration = int(min_duration) if min_duration else 1
         
-        query = {} if building == "Any Building" else {"building": building}
+        query = {}
+        if building:
+            query["building"] = building
+        if room:
+            query["room"] = room
         rooms = list(self.collection.find(query, {"_id": 0}))
         
         free_rooms = []
         for room_data in rooms:
-            # If no events on that day, the whole day is available
-            if date not in room_data.get('schedule', {}) or not room_data['schedule'][date]:
-                free_rooms.append(room_data)
-                continue
-            
+            if len(free_rooms) >= limit:
+                break
             # Check for sufficient gaps
-            if self.has_sufficient_gap(room_data['building'], room_data['room'], 
+            if self._has_sufficient_gap(room_data['building'], room_data['room'], 
                                       date, start_time, end_time, min_duration):
                 free_rooms.append(room_data)
         

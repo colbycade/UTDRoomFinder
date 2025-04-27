@@ -58,49 +58,23 @@ def search_results():
     building = request.form.get('building')
     room = request.form.get('room')
     date = request.form.get('date')
-    start_time = request.form.get('start_time')
-    end_time = request.form.get('end_time')
+    start_time = request.form.get('start_time', "00:00")
+    end_time = request.form.get('end_time', "23:59")
     duration = request.form.get('duration')
 
     criteria = {
         "building": building,
         "room": room,
         "date": date,
-        "start_time": start_time or "00:00",
-        "end_time": end_time or "23:59",
+        "start_time": start_time,
+        "end_time": end_time,
         "duration": duration
     }
 
-    # Validate that a date is selected
-    if not date:
-        criteria["error"] = "Please select a date"
-        return render_template('results.html', rooms=[], criteria=criteria)
-
-    # Validate start time is before end time if both are provided
-    if start_time and end_time:
-        try:
-            start_minutes = to_minutes(start_time)
-            end_minutes = to_minutes(end_time)
-            if start_minutes >= end_minutes:
-                criteria["error"] = "Start time must be before end time"
-                return render_template('results.html', rooms=[], criteria=criteria)
-        except ValueError as e:
-            criteria["error"] = "Invalid time format"
-            return render_template('results.html', rooms=[], criteria=criteria)
-    start_time = start_time or "00:00"
-    end_time = end_time or "23:59"
-
     # Find rooms with sufficient gaps
-    rooms = db.get_rooms_with_sufficient_gap(building, date, start_time, end_time, duration)
-
-    # If a specific room is selected, filter the rooms list to only include that room
-    if building != "Any Building" and room != "Any Room Number":
-        room_data = db.get_room(building, room)
-        if not room_data:
-            criteria["error"] = "Room not found"
-            return render_template('results.html', rooms=[], criteria=criteria)
-        # Filter rooms to only include the selected room
-        rooms = [r for r in rooms if r['building'] == building and r['room'] == room]
+    building = building if building != "Any Building" else None
+    room = room if room != "Any Room Number" else None
+    rooms = db.get_rooms_with_sufficient_gap(building, room, date, start_time, end_time, duration, limit=20)
 
     # Compute next availability for each room on the specified date
     rooms_with_availability = []
@@ -116,7 +90,7 @@ def search_results():
         room_data = {
             'building': room_item['building'],
             'room': room_item['room'],
-            'next_availability': next_slot if next_slot else "Not available today"
+            'next_availability': next_slot if next_slot else "Not available today" # shouldn't happen
         }
         rooms_with_availability.append(room_data)
 

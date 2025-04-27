@@ -277,7 +277,7 @@ class MockDatabase(DatabaseInterface):
                 return True
         return False
 
-    def get_rooms_with_sufficient_gap(self, building, date, start_time, end_time, min_duration):
+    def get_rooms_with_sufficient_gap(self, building, room, date, start_time, end_time, min_duration, limit=50):
         """Return a list of rooms in the specified building with at least one gap of min_duration minutes."""
         # Default times if not provided
         start_time = start_time or "00:00"
@@ -288,14 +288,13 @@ class MockDatabase(DatabaseInterface):
 
         free_rooms = []
         for room_data in self.rooms:
-            if building != "Any Building" and room_data['building'] != building:
+            if len(free_rooms) >= limit:
+                break
+            if building != None and room_data['building'] != building:
                 continue
-            room = room_data['room']
-            # If no events on that day, the whole day is available
-            if date not in room_data['schedule'] or not room_data['schedule'][date]:
-                free_rooms.append(room_data)
+            if room != None and room_data['room'] != room:
                 continue
             # Otherwise, check for sufficient gaps
-            if self._has_sufficient_gap(room_data['building'], room, date, start_time, end_time, min_duration):
+            if self._has_sufficient_gap(room_data['building'], room_data['room'], date, start_time, end_time, min_duration):
                 free_rooms.append(room_data)
         return free_rooms
