@@ -90,7 +90,7 @@ def search_results():
         room_data = {
             'building': room_item['building'],
             'room': room_item['room'],
-            'location': room_item['location'],
+            'location': room_item.get('location', None),
             'next_availability': next_slot if next_slot else "Not available today" # shouldn't happen
         }
         rooms_with_availability.append(room_data)

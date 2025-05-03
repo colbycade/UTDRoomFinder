@@ -30,22 +30,22 @@ class MongoDatabase(DatabaseInterface):
         """
         user = os.environ.get("mongodb_user")
         password = os.environ.get("mongodb_pwd")
+        if not user or not password:
+            raise ValueError("MongoDB credentials are not set in environment variables.")
         connection_string = f"mongodb+srv://{user}:{password}@classroominformation.kbuk2.mongodb.net/?appName=ClassroomInformation"
-        if not connection_string:
-            raise ValueError("conn_string environment variable is not set")
         client = MongoClient(connection_string, tlsCAFile=certifi.where())
         return client
 
-    def _get_db(self, database_name=DATABASE_NAME):
+    def _get_db(self):
         """Get database instance."""
         client = self.client
-        db = client[database_name]
+        db = client[self.database_name]
         return db
 
-    def _get_collection(self, collection_name=SEMESTER_COLLECTION):
+    def _get_collection(self):
         """Get collection instance."""
         db = self.db
-        collection = db[collection_name]
+        collection = db[self.semester_collection]
         return collection
 
     def get_room(self, building, room):
@@ -59,9 +59,10 @@ class MongoDatabase(DatabaseInterface):
 
     def get_rooms_by_building(self):
         """Return a dictionary mapping buildings to their room numbers."""
-        pipeline = [
-            {"$group": {"_id": "$building", "rooms": {"$push": "$room"}}}
-        ]
+        pipeline = [{
+            "$group": {"_id": "$building",  # group by building
+            "rooms": {"$push": "$room"}}    # get rooms in a list
+        }]
         result = self.collection.aggregate(pipeline)
         building_to_rooms = {doc["_id"]: doc["rooms"] for doc in result}
         return building_to_rooms

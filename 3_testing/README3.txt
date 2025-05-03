@@ -1,6 +1,7 @@
-How to Run Basic Function Tests
+How to Run Unit and Integration Tests
 
-To unit test the web app, we will use an inmemory mock database and validate the effects of calling each api endpoint.
+To unit test the web app in test_app.py, we use an inmemory mock database and validate the effects of calling each api endpoint.
+To perform integration tests in test_db.py, we use a test MongoDB database and validate calling the different database operation methods.
 
 Prerequisites:
 1.  Python 3.x installed.
@@ -10,20 +11,17 @@ Prerequisites:
 4.  Install required Python packages:
     pip install -r requirements.txt
 5.  Navigate to the testing directory: 
-    cd 3_basic_function_testing
+    cd 3_testing
 
 Running the Tests:
     A run config for VS Code is included in .vscode/launch.json.
-    Alternatively, run tests directly from the command line:
+    Alternatively, run all tests directly from the command line:
 
-    Command:
-    pytest
+    To run all tests (both unit and integration):
+    `pytest`
 
-    Optional: For more detailed output, use the verbose flag:
-    pytest -v
-
-    Optional: To see print statements within the tests (useful for debugging):
-    pytest -s
+    To run a specific test suite:
+    `pytest testfile.py`
 
 
 Manual Testing

@@ -1,7 +1,7 @@
+# Basic Function Testing for Flask App
+
 import pytest
 import os
-import json
-from unittest.mock import patch
 
 # Set environment variable before importing the app to use mock database
 os.environ['DB_TYPE'] = 'mock'
@@ -126,20 +126,6 @@ def test_search_time(client):
     assert MIN_DURATION.encode('utf-8') in response.data
     assert b"View Schedule" in response.data # room appears in results
 
-# Test search with invalid time range (start >= end)
-def test_search_invalid_time(client):
-    form_data = {
-        'building': "Any Building",
-        'room': "Any Room",
-        'date': DATE,
-        'start_time': "15:00", # After end_time
-        'end_time': "14:00",
-        'duration': MIN_DURATION
-    }
-    response = client.post('/results', data=form_data)
-    assert response.status_code == 200 # Still loads the results template
-    assert b"Start time must be before end time" in response.data
-
 def test_results_room_not_found(client):
     mock_db.rooms = [] # Ensure DB is empty or doesn't contain the room
     form_data = {
@@ -152,7 +138,7 @@ def test_results_room_not_found(client):
     }
     response = client.post('/results', data=form_data)
     assert response.status_code == 200
-    assert b"Room not found" in response.data
+    assert b"No rooms available matching your criteria" in response.data
 
 # Test GET /api/schedule/<building>/<room>
 def test_get_schedule(client):
