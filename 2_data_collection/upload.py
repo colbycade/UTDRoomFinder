@@ -1,3 +1,5 @@
+# Written by Nahum
+
 import os
 import pandas as pd
 import certifi

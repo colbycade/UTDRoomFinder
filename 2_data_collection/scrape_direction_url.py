@@ -1,3 +1,5 @@
+# Written by Nahum
+
 import os
 import time
 import certifi

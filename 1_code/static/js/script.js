@@ -1,3 +1,5 @@
+// Written by Colby
+
 document.addEventListener('DOMContentLoaded', () => {
     const scheduleDate = document.getElementById('schedule-date');
     if (scheduleDate) {

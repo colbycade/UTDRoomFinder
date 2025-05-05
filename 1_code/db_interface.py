@@ -1,3 +1,5 @@
+# Written by Colby
+
 from abc import ABC, abstractmethod
 
 class DatabaseInterface(ABC):

@@ -1,3 +1,5 @@
+# Written by Colby
+
 from db_interface import DatabaseInterface
 from pymongo.mongo_client import MongoClient
 import certifi

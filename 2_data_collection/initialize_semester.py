@@ -1,3 +1,5 @@
+# Written by Colby
+
 from mongodb import get_db
 from datetime import datetime, timedelta
 

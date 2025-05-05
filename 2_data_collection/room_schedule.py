@@ -1,3 +1,5 @@
+# Written by Nahum
+
 class Day:
     def __init__(self):
         self.times = []
