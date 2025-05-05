@@ -31,9 +31,9 @@ Detailed instructions for running data collection scripts, executing tests, and 
 As explained in the README files, you will need a valid UTD student username and password as well as a username and password for connecting to MongoDB.
 You should create a .env file in the root directory of this project with the following information:
 
-mongodb_user="your_utd_username"
-mongodb_pwd="your_utd_password"
-username="your_mongodb_username"
-password="your_mongodb_password"
+username="your_utd_username"
+password="your_utd_password"
+mongodb_user="your_mongodb_username"
+mongodb_pwd="your_mongodb_password"
 
 Additionally, a demo is hosted at https://utdroomfinder.pythonanywhere.com.  
